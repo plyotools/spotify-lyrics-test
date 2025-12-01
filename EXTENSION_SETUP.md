@@ -43,3 +43,4 @@ For the extension, you'll need to set environment variables in the build. You ca
 - Make sure your redirect URI in Spotify app settings matches the extension's origin
 - You may need to adjust the OAuth redirect flow for extension context
 
+

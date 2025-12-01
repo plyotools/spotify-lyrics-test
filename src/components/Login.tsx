@@ -5,8 +5,10 @@ export const Login = () => {
   const [hasExistingSession, setHasExistingSession] = useState(false);
 
   useEffect(() => {
-    // Check if there's an existing session
-    setHasExistingSession(AuthService.isAuthenticated());
+    console.log('[LOGIN COMPONENT] Checking for existing session');
+    const isAuth = AuthService.isAuthenticated();
+    console.log('[LOGIN COMPONENT] Has existing session:', isAuth);
+    setHasExistingSession(isAuth);
   }, []);
 
   const handleLogin = async () => {

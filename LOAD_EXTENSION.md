@@ -35,3 +35,4 @@ Hvis du fortsatt får feil:
 - Sjekk at `dist/icons/` mappen inneholder icon16.png, icon48.png, icon128.png
 - Kjør `npm run build:extension` på nytt
 
+

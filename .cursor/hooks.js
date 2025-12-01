@@ -6,3 +6,4 @@
 // Placeholder for future git hook integration
 // Currently logging is handled by the AI assistant directly
 
+

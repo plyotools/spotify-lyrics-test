@@ -1,6 +1,8 @@
 import { useLyrics } from '../hooks/useLyrics';
 import type { LyricsData } from '../types/lyrics';
 import type { Track, PlaybackState } from '../types/spotify';
+import { UpcomingConcerts } from './UpcomingConcerts';
+import { LibrarySearch } from './LibrarySearch';
 import { useRef } from 'react';
 // import { useRef, useEffect, useState } from 'react'; // Commented out: karaoke ball disabled
 
@@ -12,9 +14,10 @@ interface LyricsDisplayProps {
   isPlaying: boolean;
   onTogglePlayback: () => void;
   onSkipToNext: () => void;
+  onSeekToLine?: (lineIndex: number) => void;
 }
 
-export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, isPlaying, onTogglePlayback, onSkipToNext }: LyricsDisplayProps) => {
+export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, isPlaying, onTogglePlayback, onSkipToNext, onSeekToLine }: LyricsDisplayProps) => {
   const { currentLine, currentIndex, currentWordIndex, isPause } = useLyrics(lyrics, currentPosition);
   const wordRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
   const lineRef = useRef<HTMLDivElement>(null);
@@ -93,6 +96,9 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
                 <span className="track-card-album track-card-fade">{albumName}</span>
               </div>
             </div>
+            <div className="track-card-search">
+              <LibrarySearch />
+            </div>
             <div className="track-card-controls">
               <button onClick={onTogglePlayback} className="play-pause-button" title={isPlaying ? "Pause" : "Play"}>
                 {isPlaying ? (
@@ -126,6 +132,7 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
             </div>
           </div>
         </div>
+        <UpcomingConcerts track={track} />
       </div>
     );
   }
@@ -145,6 +152,9 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
                 <span className="track-card-artist track-card-fade">{artistName}</span>
                 <span className="track-card-album track-card-fade">{albumName}</span>
               </div>
+            </div>
+            <div className="track-card-search">
+              <LibrarySearch />
             </div>
             <div className="track-card-controls">
               <button onClick={onTogglePlayback} className="play-pause-button" title={isPlaying ? "Pause" : "Play"}>
@@ -175,6 +185,7 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
             </div>
           ))}
         </div>
+        <UpcomingConcerts track={track} />
       </div>
     );
   }
@@ -187,6 +198,13 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
   // Get the next line (first remaining line)
   const nextLine = remainingLines.length > 0 ? remainingLines[0] : null;
   const otherRemainingLines = remainingLines.slice(1);
+
+  // Handler to seek to a specific line
+  const handleLineClick = (lineIndex: number) => {
+    if (onSeekToLine && lineIndex >= 0 && lineIndex < lyrics.lines.length) {
+      onSeekToLine(lineIndex);
+    }
+  };
 
   return (
     <div className="lyrics-display">
@@ -201,6 +219,9 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
               <span className="track-card-artist track-card-fade">{artistName}</span>
               <span className="track-card-album track-card-fade">{albumName}</span>
             </div>
+          </div>
+          <div className="track-card-search">
+            <LibrarySearch />
           </div>
           <div className="track-card-controls">
             <button onClick={onTogglePlayback} className="play-pause-button" title={isPlaying ? "Pause" : "Play"}>
@@ -240,6 +261,8 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
             key={currentIndex} 
             className="lyrics-line lyrics-line-active lyrics-line-enter" 
             ref={lineRef}
+            onClick={() => handleLineClick(currentIndex)}
+            style={{ cursor: 'pointer' }}
           >
             {currentLine.words && currentLine.words.length > 0 ? (
               // Render words individually with word-level highlighting
@@ -280,12 +303,21 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
           </div>
         )}
         {nextLine && (
-          <div className="lyrics-line lyrics-line-next">
+          <div 
+            className="lyrics-line lyrics-line-next"
+            onClick={() => handleLineClick(currentIndex + 1)}
+            style={{ cursor: 'pointer' }}
+          >
             {nextLine.text}
           </div>
         )}
         {otherRemainingLines.map((line, index) => (
-          <div key={currentIndex + 2 + index} className="lyrics-line lyrics-line-remaining">
+          <div 
+            key={currentIndex + 2 + index} 
+            className="lyrics-line lyrics-line-remaining"
+            onClick={() => handleLineClick(currentIndex + 2 + index)}
+            style={{ cursor: 'pointer' }}
+          >
             {line.text}
           </div>
         ))}
@@ -301,6 +333,7 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
           </div>
         )}
       </div>
+      <UpcomingConcerts track={track} />
     </div>
   );
 };

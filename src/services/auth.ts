@@ -63,6 +63,9 @@ export class AuthService {
       'user-read-playback-state',
       'user-modify-playback-state',
       'streaming', // Required for Web Playback SDK
+      'user-library-read', // For saved albums
+      'playlist-read-private', // For private playlists
+      'playlist-read-collaborative', // For collaborative playlists
     ];
     
     const codeVerifier = this.generateCodeVerifier();
@@ -93,7 +96,9 @@ export class AuthService {
   }
 
   static async initiateLogin(): Promise<void> {
+    console.log('[LOGIN] Initiating login process');
     const url = await this.getAuthUrl();
+    console.log('[LOGIN] Redirecting to Spotify auth URL');
     window.location.href = url;
   }
 
@@ -262,13 +267,21 @@ export class AuthService {
   }
 
   static logout(): void {
+    console.log('[LOGOUT] Starting logout process');
+    console.log('[LOGOUT] Clearing tokens from localStorage');
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(TOKEN_EXPIRY_KEY);
+    localStorage.removeItem(CODE_VERIFIER_KEY); // Also clear code verifier
+    console.log('[LOGOUT] All tokens and code verifier cleared');
+    console.log('[LOGOUT] Logout complete - tokens removed');
   }
 
   static isAuthenticated(): boolean {
-    return !!this.getAccessToken();
+    const hasToken = !!this.getAccessToken();
+    // Only log on state changes, not on every check
+    // console.log('[AUTH CHECK] isAuthenticated:', hasToken);
+    return hasToken;
   }
 }
 

@@ -355,6 +355,25 @@ export class SpotifyService {
     }
   }
 
+  static async seekToPosition(positionMs: number): Promise<void> {
+    try {
+      const token = await AuthService.getValidToken();
+      const response = await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${Math.floor(positionMs)}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok && response.status !== 204) {
+        throw new Error('Failed to seek to position');
+      }
+    } catch (error) {
+      console.error('Error seeking to position:', error);
+      throw error;
+    }
+  }
+
   static getPlayer(): any {
     return this.player;
   }

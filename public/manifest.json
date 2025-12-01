@@ -13,7 +13,8 @@
     "https://api.spotify.com/*",
     "https://lrclib.net/*",
     "https://api.musixmatch.com/*",
-    "https://sdk.scdn.co/*"
+    "https://sdk.scdn.co/*",
+    "https://api.setlist.fm/*"
   ],
   "action": {
     "default_title": "Spotify Lyrics Player",

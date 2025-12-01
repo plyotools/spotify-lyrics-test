@@ -6,6 +6,15 @@ import App from './App.tsx'
 import { Callback } from './components/Callback'
 import './index.css'
 
+// Handle callback redirect before HashRouter loads
+// If Spotify redirects to /callback, redirect to hash route
+const pathname = window.location.pathname
+const search = window.location.search
+if (pathname === '/callback' && search && search.includes('code=')) {
+  console.log('[MAIN] Detected callback URL, redirecting to hash route');
+  window.location.hash = '/callback' + search;
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HashRouter>

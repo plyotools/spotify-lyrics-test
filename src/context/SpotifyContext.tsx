@@ -19,6 +19,9 @@ interface SpotifyContextType {
   togglePlayback: () => Promise<void>;
   skipToNext: () => Promise<void>;
   skipToPrevious: () => Promise<void>;
+  skipToNextLyricLine: () => Promise<void>;
+  skipToPreviousLyricLine: () => Promise<void>;
+  seekToLine: (lineIndex: number) => Promise<void>;
 }
 
 const SpotifyContext = createContext<SpotifyContextType | undefined>(undefined);
@@ -47,7 +50,11 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
   useEffect(() => {
     const init = async () => {
       try {
-        if (AuthService.isAuthenticated()) {
+        console.log('[AUTH INIT] Checking authentication status');
+        const isAuth = AuthService.isAuthenticated();
+        console.log('[AUTH INIT] isAuthenticated check result:', isAuth);
+        if (isAuth) {
+          console.log('[AUTH INIT] User is authenticated, setting state');
           setIsAuthenticated(true);
           // Try to initialize Web Playback SDK, but don't fail if it doesn't work
           // We can still use the Web API to get playback state
@@ -66,11 +73,14 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
             }
             // Continue anyway - we can still track playback via Web API
           }
+        } else {
+          console.log('[AUTH INIT] User is not authenticated');
         }
       } catch (err) {
-        console.error('Initialization error:', err);
+        console.error('[AUTH INIT] Initialization error:', err);
         setError('Failed to initialize Spotify player. You can still view lyrics if a song is playing on another device.');
       } finally {
+        console.log('[AUTH INIT] Initialization complete, setting isLoading to false');
         setIsLoading(false);
       }
     };
@@ -174,6 +184,7 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
   };
 
   const logout = () => {
+    console.log('[LOGOUT] Context logout called');
     AuthService.logout();
     SpotifyService.disconnect();
     setIsAuthenticated(false);
@@ -182,6 +193,14 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
     setLyrics(null);
     setCurrentPosition(0);
     LyricsService.clearCache();
+    console.log('[LOGOUT] State cleared, reloading page to prevent login loop');
+    console.log('[LOGOUT] Current URL before redirect:', window.location.href);
+    console.log('[LOGOUT] Current hash before redirect:', window.location.hash);
+    // Clear hash and reload to ensure clean state - prevents callback loop
+    setTimeout(() => {
+      window.location.hash = '';
+      window.location.reload();
+    }, 100);
   };
 
   const togglePlayback = async () => {
@@ -233,6 +252,105 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
     }
   };
 
+  const skipToNextLyricLine = async () => {
+    if (!lyrics || !lyrics.synced || lyrics.lines.length === 0) {
+      return;
+    }
+
+    // Find current line index
+    let currentLineIndex = -1;
+    for (let i = lyrics.lines.length - 1; i >= 0; i--) {
+      if (lyrics.lines[i].time <= currentPosition) {
+        currentLineIndex = i;
+        break;
+      }
+    }
+
+    // Get next line
+    const nextLineIndex = currentLineIndex + 1;
+    if (nextLineIndex < lyrics.lines.length) {
+      const nextLineTime = lyrics.lines[nextLineIndex].time;
+      try {
+        await SpotifyService.seekToPosition(nextLineTime);
+        // Update position immediately for better UX
+        setCurrentPosition(nextLineTime);
+        // Refresh state after a short delay
+        setTimeout(async () => {
+          const state = await SpotifyService.getPlaybackState();
+          if (state) {
+            setPlaybackState(state);
+            setCurrentPosition(state.progress_ms);
+          }
+        }, 300);
+      } catch (error) {
+        console.error('Error skipping to next line:', error);
+      }
+    }
+  };
+
+  const skipToPreviousLyricLine = async () => {
+    if (!lyrics || !lyrics.synced || lyrics.lines.length === 0) {
+      return;
+    }
+
+    // Find current line index
+    let currentLineIndex = -1;
+    for (let i = lyrics.lines.length - 1; i >= 0; i--) {
+      if (lyrics.lines[i].time <= currentPosition) {
+        currentLineIndex = i;
+        break;
+      }
+    }
+
+    // Get previous line
+    const previousLineIndex = currentLineIndex - 1;
+    if (previousLineIndex >= 0) {
+      const previousLineTime = lyrics.lines[previousLineIndex].time;
+      try {
+        await SpotifyService.seekToPosition(previousLineTime);
+        // Update position immediately for better UX
+        setCurrentPosition(previousLineTime);
+        // Refresh state after a short delay
+        setTimeout(async () => {
+          const state = await SpotifyService.getPlaybackState();
+          if (state) {
+            setPlaybackState(state);
+            setCurrentPosition(state.progress_ms);
+          }
+        }, 300);
+      } catch (error) {
+        console.error('Error skipping to previous line:', error);
+      }
+    }
+  };
+
+  const seekToLine = async (lineIndex: number) => {
+    if (!lyrics || !lyrics.synced || lyrics.lines.length === 0) {
+      return;
+    }
+
+    if (lineIndex < 0 || lineIndex >= lyrics.lines.length) {
+      return;
+    }
+
+    const lineTime = lyrics.lines[lineIndex].time;
+    try {
+      await SpotifyService.seekToPosition(lineTime);
+      // Update position immediately for better UX
+      setCurrentPosition(lineTime);
+      // Refresh state after a short delay
+      setTimeout(async () => {
+        const state = await SpotifyService.getPlaybackState();
+        if (state) {
+          setPlaybackState(state);
+          setCurrentPosition(state.progress_ms);
+        }
+      }, 300);
+    } catch (error) {
+      console.error('Error seeking to line:', error);
+    }
+  };
+
   return (
     <SpotifyContext.Provider
       value={{
@@ -248,6 +366,9 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
         togglePlayback,
         skipToNext,
         skipToPrevious,
+        skipToNextLyricLine,
+        skipToPreviousLyricLine,
+        seekToLine,
       }}
     >
       {children}

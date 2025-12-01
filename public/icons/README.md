@@ -9,3 +9,4 @@ You can download Spotify icons from:
 - https://developer.spotify.com/branding-guidelines/
 - Or use a green music note icon as a placeholder
 
+

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Lyrics Player - Log Viewer</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #121212;
+      color: #ffffff;
+      padding: 20px;
+      margin: 0;
+    }
+    .log-container {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .log-entry {
+      margin: 5px 0;
+      padding: 5px;
+      border-left: 3px solid transparent;
+    }
+    .log-entry.error {
+      border-left-color: #ff3b30;
+      color: #ff6b6b;
+    }
+    .log-entry.warn {
+      border-left-color: #ff9500;
+      color: #ffb84d;
+    }
+    .log-entry.info {
+      border-left-color: #007aff;
+      color: #5ac8fa;
+    }
+    .controls {
+      margin-bottom: 20px;
+    }
+    button {
+      background: #1db954;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background: #1ed760;
+    }
+  </style>
+</head>
+<body>
+  <h1>Spotify Lyrics Player - Log Viewer</h1>
+  <div class="controls">
+    <button onclick="loadLogs()">Refresh Logs</button>
+    <button onclick="clearLogs()">Clear Console Logs</button>
+    <button onclick="exportLogs()">Export Logs</button>
+  </div>
+  <div class="log-container" id="logContainer">
+    <p>Loading logs from console... Check browser console for detailed logs with [LOGOUT], [AUTH INIT], [CALLBACK], [LOGIN], [APP] prefixes.</p>
+  </div>
+
+  <script>
+    function loadLogs() {
+      const container = document.getElementById('logContainer');
+      container.innerHTML = '<p>Logs are displayed in the browser console. Open Developer Tools (F12) and check the Console tab.</p>';
+      
+      if (window.appLogger) {
+        const logs = window.appLogger.getLogs();
+        if (logs.length === 0) {
+          container.innerHTML = '<p>No logs found. Logs will appear here as the app runs.</p>';
+          return;
+        }
+        
+        let html = '';
+        logs.forEach(log => {
+          let className = 'info';
+          if (log.includes('[ERROR]')) className = 'error';
+          else if (log.includes('[WARN]')) className = 'warn';
+          
+          html += `<div class="log-entry ${className}">${log.replace(/\n/g, '<br>')}</div>`;
+        });
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = '<p>Logger not available. Make sure the app is running and check the browser console.</p>';
+      }
+    }
+
+    function clearLogs() {
+      if (window.appLogger) {
+        window.appLogger.clear();
+        loadLogs();
+      }
+      console.clear();
+      alert('Console logs cleared. Refresh page to see new logs.');
+    }
+
+    function exportLogs() {
+      if (window.appLogger) {
+        window.appLogger.exportLogs();
+      } else {
+        alert('Logger not available. Check browser console for logs.');
+      }
+    }
+
+    // Auto-refresh every 2 seconds
+    setInterval(loadLogs, 2000);
+    loadLogs();
+  </script>
+</body>
+</html>
+

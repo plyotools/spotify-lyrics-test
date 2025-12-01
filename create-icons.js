@@ -8,3 +8,4 @@ console.log('2. Resize them to 16x16, 48x48, and 128x128 pixels');
 console.log('3. Save them as icon16.png, icon48.png, icon128.png in public/icons/');
 console.log('4. Or use any green music note icon as a placeholder');
 
+
