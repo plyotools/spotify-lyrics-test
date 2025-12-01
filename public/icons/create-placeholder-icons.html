@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Placeholder Icons</title>
+</head>
+<body>
+  <h1>Placeholder Icon Generator</h1>
+  <p>Open this file in a browser and use the canvas to create icons, or download Spotify icons manually.</p>
+  <canvas id="iconCanvas" width="128" height="128"></canvas>
+  <script>
+    const canvas = document.getElementById('iconCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Draw a simple green circle with music note
+    ctx.fillStyle = '#1DB954';
+    ctx.beginPath();
+    ctx.arc(64, 64, 60, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 80px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('♪', 64, 64);
+    
+    // Download function (you'll need to manually save as PNG)
+    console.log('Right-click the canvas and save as PNG, then resize to 16x16, 48x48, and 128x128');
+  </script>
+</body>
+</html>
+
