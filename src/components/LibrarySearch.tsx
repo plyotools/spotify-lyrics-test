@@ -19,8 +19,65 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
   const [error, setError] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const albumArt = currentTrack?.album?.images?.[0]?.url || '';
+
+  // Position dropdown aligned to right edge below next icon
+  useEffect(() => {
+    if (!isOpen || !resultsRef.current || !containerRef.current) return;
+
+    const updatePosition = () => {
+      const container = containerRef.current;
+      const results = resultsRef.current;
+      if (!container || !results) return;
+
+      // Find the next track button or track-card-controls
+      const trackCardControls = document.querySelector('.track-card-controls');
+      const nextButton = document.querySelector('.next-track-button');
+      const targetElement = nextButton || trackCardControls || container;
+      
+      const targetRect = targetElement.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Align to right edge of app (accounting for padding)
+      const rightMargin = 24; // 1.5rem
+      const menuWidth = Math.min(500, viewportWidth - rightMargin * 2);
+      const leftPosition = viewportWidth - menuWidth - rightMargin;
+      
+      // Position below the next button or controls
+      const topOffset = targetRect.bottom + 8; // 0.5rem below
+      
+      // Position dropdown
+      results.style.position = 'fixed';
+      results.style.left = `${leftPosition}px`;
+      results.style.top = `${topOffset}px`;
+      results.style.width = `${menuWidth}px`;
+      results.style.maxWidth = `${menuWidth}px`;
+      
+      // Ensure it doesn't overflow bottom
+      const resultsHeight = results.offsetHeight;
+      if (topOffset + resultsHeight > viewportHeight - 24) {
+        results.style.maxHeight = `${viewportHeight - topOffset - 24}px`;
+      }
+    };
+
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      updatePosition();
+      // Also update after a short delay to catch any layout changes
+      setTimeout(updatePosition, 100);
+    });
+    
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition);
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition);
+    };
+  }, [isOpen]);
 
   // Fetch all library items on mount
   useEffect(() => {
@@ -151,7 +208,7 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
   }, [selectedIndex]);
 
   return (
-    <div className="library-search-container">
+    <div className="library-search-container" ref={containerRef}>
       <div className="library-search-input-wrapper">
         <svg
           className="library-search-icon"
@@ -205,13 +262,6 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
                     className="library-search-loading-artwork" 
                   />
                 )}
-                <div className="music-animation">
-                  <div className="sound-wave sound-wave-1"></div>
-                  <div className="sound-wave sound-wave-2"></div>
-                  <div className="sound-wave sound-wave-3"></div>
-                  <div className="sound-wave sound-wave-4"></div>
-                  <div className="sound-wave sound-wave-5"></div>
-                </div>
               </div>
               <p>Loading your library...</p>
             </div>
@@ -235,9 +285,6 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
                 <div className="library-search-result-info">
                   <div className="library-search-result-name">{item.name || 'Untitled'}</div>
                   <div className="library-search-result-subtitle">{item.subtitle || ''}</div>
-                </div>
-                <div className="library-search-result-type">
-                  {item.type === 'playlist' ? '📋' : '💿'}
                 </div>
               </div>
             ))

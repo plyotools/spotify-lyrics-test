@@ -123,12 +123,14 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
         )}
         <div className="lyrics-container-simple">
           <div className="lyrics-line lyrics-line-active lyrics-line-pause">
-            <div className="music-animation">
-              <div className="sound-wave sound-wave-1"></div>
-              <div className="sound-wave sound-wave-2"></div>
-              <div className="sound-wave sound-wave-3"></div>
-              <div className="sound-wave sound-wave-4"></div>
-              <div className="sound-wave sound-wave-5"></div>
+            <div className="lyrics-loading-container">
+              {albumArt && (
+                <img 
+                  src={albumArt} 
+                  alt="Album art" 
+                  className="lyrics-loading-album-cover" 
+                />
+              )}
             </div>
           </div>
         </div>
@@ -248,12 +250,14 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
       <div className="lyrics-container-simple">
         {isPause ? (
           <div className="lyrics-line lyrics-line-active lyrics-line-pause">
-            <div className="music-animation">
-              <div className="sound-wave sound-wave-1"></div>
-              <div className="sound-wave sound-wave-2"></div>
-              <div className="sound-wave sound-wave-3"></div>
-              <div className="sound-wave sound-wave-4"></div>
-              <div className="sound-wave sound-wave-5"></div>
+            <div className="lyrics-loading-container">
+              {albumArt && (
+                <img 
+                  src={albumArt} 
+                  alt="Album art" 
+                  className="lyrics-loading-album-cover" 
+                />
+              )}
             </div>
           </div>
         ) : currentLine && (
@@ -323,12 +327,14 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
         ))}
         {!currentLine && remainingLines.length === 0 && (
           <div className="lyrics-line lyrics-waiting">
-            <div className="music-animation">
-              <div className="sound-wave sound-wave-1"></div>
-              <div className="sound-wave sound-wave-2"></div>
-              <div className="sound-wave sound-wave-3"></div>
-              <div className="sound-wave sound-wave-4"></div>
-              <div className="sound-wave sound-wave-5"></div>
+            <div className="lyrics-loading-container">
+              {albumArt && (
+                <img 
+                  src={albumArt} 
+                  alt="Album art" 
+                  className="lyrics-loading-album-cover" 
+                />
+              )}
             </div>
           </div>
         )}

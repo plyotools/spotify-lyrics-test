@@ -1,3 +1,17 @@
+// Declare chrome API types for extension context
+declare const chrome: {
+  storage?: {
+    local?: {
+      set: (items: Record<string, any>, callback?: () => void) => void;
+      get: (keys: string[], callback: (result: Record<string, any>) => void) => void;
+      remove: (keys: string[], callback?: () => void) => void;
+    };
+  };
+  runtime?: {
+    lastError?: Error;
+  };
+} | undefined;
+
 const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 // Use environment variable if set, otherwise default based on context
 const getDefaultRedirectUri = () => {
@@ -72,23 +86,54 @@ export class AuthService {
     const codeChallenge = await this.generateCodeChallenge(codeVerifier);
     
     // Store code verifier for later use
+    // Store in both localStorage and sessionStorage for better compatibility
     localStorage.setItem(CODE_VERIFIER_KEY, codeVerifier);
+    sessionStorage.setItem(CODE_VERIFIER_KEY, codeVerifier);
+    
+    // For Chrome extensions, also pass code verifier in state parameter to handle cross-origin issues
+    const isExtension = window.location.origin.startsWith('chrome-extension://');
+    let redirectUri = REDIRECT_URI;
+    let state = '';
+    
+    if (isExtension) {
+      // Encode code verifier in state parameter for extension context
+      // This allows us to retrieve it from the callback URL
+      state = btoa(JSON.stringify({ verifier: codeVerifier, timestamp: Date.now() }));
+      // Store in extension storage as well
+      try {
+        if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
+          chrome.storage.local.set({ [CODE_VERIFIER_KEY]: codeVerifier });
+        }
+      } catch (e) {
+        console.warn('[LOGIN] Could not use chrome.storage:', e);
+      }
+    }
+    
+    console.log('[LOGIN] Code verifier stored in localStorage and sessionStorage');
+    if (isExtension) {
+      console.log('[LOGIN] Extension context detected - code verifier also in state parameter');
+    }
     
     const scopeString = scopes.join(' ');
     console.log('Authorization request:', {
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: redirectUri,
       client_id: SPOTIFY_CLIENT_ID,
       scopes: scopeString,
+      is_extension: isExtension,
     });
     
     const params = new URLSearchParams({
       client_id: SPOTIFY_CLIENT_ID,
       response_type: 'code',
-      redirect_uri: REDIRECT_URI, // Must match exactly what's in Spotify app settings
+      redirect_uri: redirectUri, // Must match exactly what's in Spotify app settings
       scope: scopeString,
       code_challenge_method: 'S256',
       code_challenge: codeChallenge,
     });
+    
+    if (state) {
+      params.append('state', state);
+    }
     
     const authUrl = `https://accounts.spotify.com/authorize?${params.toString()}`;
     console.log('Full auth URL (first 200 chars):', authUrl.substring(0, 200));
@@ -97,15 +142,85 @@ export class AuthService {
 
   static async initiateLogin(): Promise<void> {
     console.log('[LOGIN] Initiating login process');
+    // Clear any old code verifier before starting new login
+    const oldVerifierLocal = localStorage.getItem(CODE_VERIFIER_KEY);
+    const oldVerifierSession = sessionStorage.getItem(CODE_VERIFIER_KEY);
+    if (oldVerifierLocal || oldVerifierSession) {
+      console.log('[LOGIN] Clearing old code verifier before new login');
+      localStorage.removeItem(CODE_VERIFIER_KEY);
+      sessionStorage.removeItem(CODE_VERIFIER_KEY);
+    }
     const url = await this.getAuthUrl();
     console.log('[LOGIN] Redirecting to Spotify auth URL');
     window.location.href = url;
   }
 
-  static async handleCallback(code: string): Promise<TokenResponse> {
-    const codeVerifier = localStorage.getItem(CODE_VERIFIER_KEY);
+  static async handleCallback(code: string, state?: string): Promise<TokenResponse> {
+    console.log('[CALLBACK] Checking for code verifier...');
+    
+    // Try to get code verifier from multiple sources
+    let codeVerifier: string | null = null;
+    
+    // First, try to get from state parameter (for extension context)
+    if (state) {
+      try {
+        const stateData = JSON.parse(atob(state));
+        if (stateData.verifier && Date.now() - stateData.timestamp < 600000) { // 10 minutes
+          codeVerifier = stateData.verifier;
+          console.log('[CALLBACK] Code verifier found in state parameter');
+        }
+      } catch (e) {
+        console.warn('[CALLBACK] Could not parse state parameter:', e);
+      }
+    }
+    
+    // Try sessionStorage
     if (!codeVerifier) {
-      throw new Error('Code verifier not found. Please try logging in again.');
+      codeVerifier = sessionStorage.getItem(CODE_VERIFIER_KEY);
+      if (codeVerifier) {
+        console.log('[CALLBACK] Code verifier found in sessionStorage');
+      }
+    }
+    
+    // Try localStorage
+    if (!codeVerifier) {
+      codeVerifier = localStorage.getItem(CODE_VERIFIER_KEY);
+      if (codeVerifier) {
+        console.log('[CALLBACK] Code verifier found in localStorage');
+      }
+    }
+    
+    // Try Chrome extension storage
+    if (!codeVerifier && typeof chrome !== 'undefined' && chrome?.storage?.local) {
+      try {
+        const result = await new Promise<{ [key: string]: string }>((resolve, reject) => {
+          chrome!.storage!.local!.get([CODE_VERIFIER_KEY], (result: Record<string, any>) => {
+            if (chrome?.runtime?.lastError) {
+              reject(chrome.runtime.lastError);
+            } else {
+              resolve(result as { [key: string]: string });
+            }
+          });
+        });
+        codeVerifier = result[CODE_VERIFIER_KEY] || null;
+        if (codeVerifier) {
+          console.log('[CALLBACK] Code verifier found in chrome.storage.local');
+        }
+      } catch (e) {
+        console.warn('[CALLBACK] Could not access chrome.storage:', e);
+      }
+    }
+    
+    console.log('[CALLBACK] Code verifier found:', !!codeVerifier);
+    if (!codeVerifier) {
+      console.error('[CALLBACK] Code verifier missing.');
+      console.log('[CALLBACK] SessionStorage keys:', Object.keys(sessionStorage));
+      console.log('[CALLBACK] LocalStorage keys:', Object.keys(localStorage));
+      console.log('[CALLBACK] Current origin:', window.location.origin);
+      console.log('[CALLBACK] Is extension:', window.location.protocol === 'chrome-extension:');
+      console.log('[CALLBACK] State parameter:', state || 'none');
+      // Clear any old state and redirect to login
+      throw new Error('Code verifier not found. This usually means the login session expired. Please try logging in again.');
     }
 
     // IMPORTANT: The redirect_uri must match EXACTLY what was used in the authorization request
@@ -154,6 +269,7 @@ export class AuthService {
       // If invalid_grant, the code was already used - clear verifier to force new login
       if (errorText.includes('invalid_grant')) {
         localStorage.removeItem(CODE_VERIFIER_KEY);
+        sessionStorage.removeItem(CODE_VERIFIER_KEY);
         throw new Error('Authorization code already used or expired. Please log in again.');
       }
       
@@ -184,6 +300,7 @@ export class AuthService {
     
     // Clean up code verifier immediately after successful exchange
     localStorage.removeItem(CODE_VERIFIER_KEY);
+    sessionStorage.removeItem(CODE_VERIFIER_KEY);
     return data;
   }
 
@@ -272,8 +389,9 @@ export class AuthService {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(TOKEN_EXPIRY_KEY);
-    localStorage.removeItem(CODE_VERIFIER_KEY); // Also clear code verifier
-    console.log('[LOGOUT] All tokens and code verifier cleared');
+    // Don't clear CODE_VERIFIER_KEY here - it might be needed for ongoing login flow
+    // It will be cleared after successful auth or on new login attempt
+    console.log('[LOGOUT] All tokens cleared');
     console.log('[LOGOUT] Logout complete - tokens removed');
   }
 

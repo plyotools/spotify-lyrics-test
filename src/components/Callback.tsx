@@ -42,6 +42,8 @@ export const Callback = () => {
       const urlParams = new URLSearchParams(queryString);
       const code = urlParams.get('code');
       const error = urlParams.get('error');
+      const state = urlParams.get('state');
+      console.log('[CALLBACK] State parameter:', state || 'none');
 
       if (error) {
         console.error('[CALLBACK] Auth error from Spotify:', error);
@@ -59,7 +61,7 @@ export const Callback = () => {
       hasProcessed.current = true;
       console.log('[CALLBACK] Found authorization code, exchanging for token...');
       try {
-        await AuthService.handleCallback(code);
+        await AuthService.handleCallback(code, state || undefined);
         console.log('[CALLBACK] Token exchange successful, navigating to home...');
         navigate('/');
       } catch (err) {
