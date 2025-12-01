@@ -21,6 +21,7 @@
   color: #B3B3B3;
   border: none;
   padding: 0.3rem;
+  padding-left: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -251,13 +252,118 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding: 1.5rem 0 1.5rem 2rem;
+  padding: 1.5rem 2rem;
   gap: 1rem;
   overflow: visible;
   max-height: none;
   width: 100%;
   max-width: 100%;
   margin: 0;
+  box-sizing: border-box;
+}
+
+/* Track card at the top */
+.track-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.track-card-artwork {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  animation: rotateAlbum 8s linear infinite;
+  transform-origin: center center;
+}
+
+@keyframes rotateAlbum {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.track-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.track-card-info-container {
+  position: relative;
+  min-height: 1.3em;
+}
+
+.track-card-fade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  opacity: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  animation: fadeInOut 9s ease-in-out infinite;
+}
+
+.track-card-name {
+  animation-delay: 0s;
+}
+
+.track-card-artist {
+  animation-delay: 3s;
+}
+
+.track-card-album {
+  animation-delay: 6s;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  32.4% {
+    opacity: 1;
+  }
+  36% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.track-card-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.track-card-next {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 0;
 }
 
 .lyrics-track-header {
@@ -296,8 +402,67 @@
 }
 
 .play-pause-button svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+}
+
+.next-track-button {
+  background: transparent;
+  color: #B3B3B3;
+  border: none;
+  padding: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.next-track-button:hover {
+  color: #1DB954;
+  background: #212121;
+}
+
+.next-track-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.skip-link {
+  background: transparent;
+  border: none;
+  color: #B3B3B3;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.skip-link:hover {
+  color: #1DB954;
+  text-decoration: underline;
+}
+
+.skip-link svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.skip-link-disabled {
+  color: #535353;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  opacity: 0.5;
 }
 
 .lyrics-track-artwork {
@@ -345,12 +510,27 @@
   width: 100%;
   max-width: 100%;
   margin: 0;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .lyrics-line-previous {
   color: #212121;
   font-size: 0.85rem;
   margin: 0;
+  animation: lineExit 0.4s ease-in;
+}
+
+@keyframes lineExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
 }
 
 .lyrics-line-active {
@@ -360,8 +540,45 @@
   text-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
   transform: scale(1.05);
   padding: 0.75rem 0;
+  position: relative;
 }
 
+.lyrics-line-pause {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  padding: 2rem 0;
+}
+
+/* Animation for line transitions - quick fade out/in */
+.lyrics-line-exit {
+  animation: lineExit 0.2s ease-in;
+}
+
+.lyrics-line-enter {
+  animation: lineEnter 0.2s ease-out;
+}
+
+@keyframes lineExit {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes lineEnter {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Animation for next line - subtle pulse to indicate it's coming up */
 .lyrics-word {
   transition: all 0.2s ease;
 }
@@ -440,6 +657,17 @@
   color: #535353;
   font-size: 0.9rem;
 }
+
+.lyrics-line-next {
+  color: #1DB954;
+  font-size: 1.1rem;
+  font-weight: 700;
+  opacity: 0.7;
+  padding: 0.5rem 0;
+  margin: 0;
+}
+
+
 
 .lyrics-line-remaining {
   color: #535353;
@@ -574,5 +802,66 @@
 
   .lyrics-line-active {
     font-size: 1.1rem;
+  }
+}
+
+/* Music animation - sound waves */
+.lyrics-waiting {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0;
+  min-height: 100px;
+}
+
+.music-animation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 60px;
+}
+
+.sound-wave {
+  width: 6px;
+  background: #1DB954;
+  border-radius: 3px;
+  animation: soundWave 1.2s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(29, 185, 84, 0.5);
+}
+
+.sound-wave-1 {
+  height: 20px;
+  animation-delay: 0s;
+}
+
+.sound-wave-2 {
+  height: 40px;
+  animation-delay: 0.1s;
+}
+
+.sound-wave-3 {
+  height: 60px;
+  animation-delay: 0.2s;
+}
+
+.sound-wave-4 {
+  height: 40px;
+  animation-delay: 0.3s;
+}
+
+.sound-wave-5 {
+  height: 20px;
+  animation-delay: 0.4s;
+}
+
+@keyframes soundWave {
+  0%, 100% {
+    transform: scaleY(0.3);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
   }
 }

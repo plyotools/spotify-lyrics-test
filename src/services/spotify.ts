@@ -132,10 +132,11 @@ export class SpotifyService {
 
         this.player.addListener('authentication_error', ({ message }: { message: string }) => {
           console.error('Failed to authenticate', message);
-          // If it's a scope error, clear tokens to force re-login
+          // If it's a scope error, don't log out - just reject
+          // The app can still work with Web API without Web Playback SDK
           if (message.includes('Invalid token scopes') || message.includes('scope')) {
-            console.warn('Token missing required scopes. Please log out and log in again.');
-            AuthService.logout();
+            console.warn('Token missing required scopes for Web Playback SDK. App will continue using Web API only.');
+            // Don't log out - keep tokens for Web API usage
           }
           reject(new Error(message));
         });
@@ -145,8 +146,21 @@ export class SpotifyService {
           reject(new Error(message));
         });
 
+        // Listen for player state changes to capture track_window
+        (this.player as any).addListener('player_state_changed', (state: any) => {
+          if (state?.track_window) {
+            // Store track_window data for later use
+            this.lastTrackWindow = {
+              previous_tracks: state.track_window.previous_tracks || [],
+              next_tracks: state.track_window.next_tracks || [],
+            };
+          }
+        });
+
         this.player.connect();
   }
+
+  private static lastTrackWindow: { previous_tracks: any[]; next_tracks: any[] } | null = null;
 
   static async getCurrentlyPlayingTrack(): Promise<Track | null> {
     try {
@@ -183,23 +197,83 @@ export class SpotifyService {
       });
 
       if (response.status === 204) {
-        return null; // No playback state
+        // No content - no active device or nothing playing
+        return null;
+      }
+
+      if (response.status === 401) {
+        // Unauthorized - token might be invalid
+        console.warn('Unauthorized - token may need refresh');
+        throw new Error('Unauthorized - please log in again');
       }
 
       if (!response.ok) {
-        throw new Error('Failed to fetch playback state');
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('Playback state error:', response.status, errorText);
+        throw new Error(`Failed to fetch playback state: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      
+      // Try to get queue for next tracks
+      let nextTracks: Track[] = [];
+      let previousTracks: Track[] = [];
+      
+      // First, try to get from Web Playback SDK if available
+      if (this.player && this.isInitialized) {
+        try {
+          const player = this.player as any;
+          const state = await player.getCurrentState();
+          if (state?.track_window) {
+            previousTracks = state.track_window.previous_tracks || [];
+            nextTracks = state.track_window.next_tracks || [];
+          } else if (this.lastTrackWindow) {
+            // Fallback to last known track_window
+            previousTracks = this.lastTrackWindow.previous_tracks || [];
+            nextTracks = this.lastTrackWindow.next_tracks || [];
+          }
+        } catch (err) {
+          // SDK not available, try queue endpoint
+        }
+      }
+      
+      // If SDK didn't provide tracks, try queue endpoint
+      if (nextTracks.length === 0 && previousTracks.length === 0) {
+        try {
+          const queueResponse = await fetch('https://api.spotify.com/v1/me/player/queue', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          
+          if (queueResponse.ok) {
+            const queueData = await queueResponse.json();
+            nextTracks = queueData.queue || [];
+            // Queue endpoint doesn't provide previous tracks
+          }
+        } catch (err) {
+          // Queue endpoint might not be available, continue without it
+          console.log('Queue endpoint not available, previous/next tracks will not be shown');
+        }
+      }
+      
       return {
         is_playing: data.is_playing,
         item: data.item,
         progress_ms: data.progress_ms || 0,
         timestamp: data.timestamp || Date.now(),
+        context: {
+          previous_tracks: previousTracks,
+          next_tracks: nextTracks,
+        },
       };
     } catch (error) {
-      console.error('Error fetching playback state:', error);
-      return null;
+      // Only log if it's not a refresh token error (that's already logged in auth.ts)
+      if (error instanceof Error && !error.message.includes('No refresh token')) {
+        console.error('Error fetching playback state:', error);
+      }
+      // Re-throw so the caller can handle it
+      throw error;
     }
   }
 
@@ -239,6 +313,44 @@ export class SpotifyService {
       }
     } catch (error) {
       console.error('Error toggling playback:', error);
+      throw error;
+    }
+  }
+
+  static async skipToNext(): Promise<void> {
+    try {
+      const token = await AuthService.getValidToken();
+      const response = await fetch('https://api.spotify.com/v1/me/player/next', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok && response.status !== 204) {
+        throw new Error('Failed to skip to next track');
+      }
+    } catch (error) {
+      console.error('Error skipping to next track:', error);
+      throw error;
+    }
+  }
+
+  static async skipToPrevious(): Promise<void> {
+    try {
+      const token = await AuthService.getValidToken();
+      const response = await fetch('https://api.spotify.com/v1/me/player/previous', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok && response.status !== 204) {
+        throw new Error('Failed to skip to previous track');
+      }
+    } catch (error) {
+      console.error('Error skipping to previous track:', error);
       throw error;
     }
   }

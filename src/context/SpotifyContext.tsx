@@ -17,6 +17,8 @@ interface SpotifyContextType {
   login: () => void;
   logout: () => void;
   togglePlayback: () => Promise<void>;
+  skipToNext: () => Promise<void>;
+  skipToPrevious: () => Promise<void>;
 }
 
 const SpotifyContext = createContext<SpotifyContextType | undefined>(undefined);
@@ -89,6 +91,18 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
       try {
         const state = await SpotifyService.getPlaybackState();
         if (state) {
+          const newTrackId = state.item?.id;
+          const currentTrackId = currentTrack?.id;
+          
+          // Log when track changes
+          if (newTrackId && newTrackId !== currentTrackId) {
+            console.log('Track changed:', {
+              from: currentTrack?.name || 'none',
+              to: state.item?.name,
+              artist: state.item?.artists[0]?.name,
+            });
+          }
+          
           setPlaybackState(state);
           setCurrentTrack(state.item);
           isPlaying = state.is_playing;
@@ -97,9 +111,15 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
           basePosition = state.progress_ms;
           baseTimestamp = Date.now();
           setCurrentPosition(state.progress_ms);
+        } else {
+          console.log('No playback state - no active device or paused');
         }
       } catch (err) {
         console.error('Error updating playback:', err);
+        // Don't silently fail - show error to user if it persists
+        if (err instanceof Error && err.message.includes('No refresh token')) {
+          setError('Session expired. Please log out and log in again.');
+        }
       }
     };
 
@@ -179,6 +199,40 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
     }
   };
 
+  const skipToNext = async () => {
+    try {
+      await SpotifyService.skipToNext();
+      // Refresh playback state after skip
+      setTimeout(async () => {
+        const state = await SpotifyService.getPlaybackState();
+        if (state) {
+          setPlaybackState(state);
+          setCurrentTrack(state.item);
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Error skipping to next:', error);
+      setError('Failed to skip to next track');
+    }
+  };
+
+  const skipToPrevious = async () => {
+    try {
+      await SpotifyService.skipToPrevious();
+      // Refresh playback state after skip
+      setTimeout(async () => {
+        const state = await SpotifyService.getPlaybackState();
+        if (state) {
+          setPlaybackState(state);
+          setCurrentTrack(state.item);
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Error skipping to previous:', error);
+      setError('Failed to skip to previous track');
+    }
+  };
+
   return (
     <SpotifyContext.Provider
       value={{
@@ -192,6 +246,8 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
         login,
         logout,
         togglePlayback,
+        skipToNext,
+        skipToPrevious,
       }}
     >
       {children}

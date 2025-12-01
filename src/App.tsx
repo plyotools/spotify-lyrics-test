@@ -12,8 +12,8 @@ function App() {
     currentPosition,
     playbackState,
     error,
-    logout,
     togglePlayback,
+    skipToNext,
   } = useSpotify()
 
   if (isLoading) {
@@ -43,9 +43,10 @@ function App() {
           lyrics={lyrics} 
           currentPosition={currentPosition} 
           track={currentTrack}
+          playbackState={playbackState}
           isPlaying={playbackState?.is_playing || false}
-          onLogout={logout}
           onTogglePlayback={togglePlayback}
+          onSkipToNext={skipToNext}
         />
       </main>
     </div>

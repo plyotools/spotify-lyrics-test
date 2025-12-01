@@ -37,3 +37,7 @@ lerna-debug.log*
 
 # Vite
 .vite/
+
+# Cursor logs
+cursor.log
+cursor.log.*

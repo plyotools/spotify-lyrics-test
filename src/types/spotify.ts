@@ -14,5 +14,9 @@ export interface PlaybackState {
   item: Track | null;
   progress_ms: number;
   timestamp: number;
+  context?: {
+    previous_tracks?: Track[];
+    next_tracks?: Track[];
+  };
 }
 

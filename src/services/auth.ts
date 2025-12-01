@@ -29,7 +29,7 @@ const CODE_VERIFIER_KEY = 'spotify_code_verifier';
 
 export interface TokenResponse {
   access_token: string;
-  refresh_token: string;
+  refresh_token?: string; // Optional - may not be present on subsequent auths
   expires_in: number;
 }
 
@@ -156,7 +156,27 @@ export class AuthService {
     }
 
     const data: TokenResponse = await response.json();
+    
+    // Log token response (without sensitive data)
+    console.log('Token response received:', {
+      has_access_token: !!data.access_token,
+      has_refresh_token: !!data.refresh_token,
+      expires_in: data.expires_in,
+    });
+    
+    // Check if refresh token is present
+    if (!data.refresh_token) {
+      console.warn('No refresh token in response. Token refresh may not work.');
+    }
+    
     this.storeTokens(data);
+    
+    // Verify tokens were stored
+    console.log('Tokens stored:', {
+      access_token_stored: !!this.getAccessToken(),
+      refresh_token_stored: !!this.getRefreshToken(),
+    });
+    
     // Clean up code verifier immediately after successful exchange
     localStorage.removeItem(CODE_VERIFIER_KEY);
     return data;
@@ -165,7 +185,16 @@ export class AuthService {
   static storeTokens(tokenData: TokenResponse): void {
     const expiryTime = Date.now() + tokenData.expires_in * 1000;
     localStorage.setItem(TOKEN_STORAGE_KEY, tokenData.access_token);
-    localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokenData.refresh_token);
+    
+    // Only store refresh token if it's present
+    // (Spotify may not return it on subsequent authorizations)
+    if (tokenData.refresh_token) {
+      localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokenData.refresh_token);
+    } else {
+      console.warn('No refresh token provided - keeping existing refresh token if available');
+      // Don't remove existing refresh token - keep it for future use
+    }
+    
     localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
   }
 
@@ -208,7 +237,7 @@ export class AuthService {
     const data = await response.json();
     const tokenData: TokenResponse = {
       access_token: data.access_token,
-      refresh_token: data.refresh_token || refreshToken,
+      refresh_token: data.refresh_token || refreshToken || undefined,
       expires_in: data.expires_in,
     };
     this.storeTokens(tokenData);
@@ -217,7 +246,13 @@ export class AuthService {
 
   static async getValidToken(): Promise<string> {
     if (this.isTokenExpired()) {
-      return await this.refreshAccessToken();
+      console.log('Token expired, refreshing...');
+      try {
+        return await this.refreshAccessToken();
+      } catch (error) {
+        console.error('Failed to refresh token:', error);
+        throw error;
+      }
     }
     const token = this.getAccessToken();
     if (!token) {
