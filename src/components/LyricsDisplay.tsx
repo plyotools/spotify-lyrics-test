@@ -2,8 +2,8 @@ import { useLyrics } from '../hooks/useLyrics';
 import type { LyricsData } from '../types/lyrics';
 import type { Track, PlaybackState } from '../types/spotify';
 import { UpcomingConcerts } from './UpcomingConcerts';
-import { LibrarySearch } from './LibrarySearch';
-import { useRef } from 'react';
+import { LibrarySearch, type LibrarySearchRef } from './LibrarySearch';
+import { useRef, useEffect } from 'react';
 // import { useRef, useEffect, useState } from 'react'; // Commented out: karaoke ball disabled
 
 interface LyricsDisplayProps {
@@ -21,6 +21,29 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
   const { currentLine, currentIndex, currentWordIndex, isPause } = useLyrics(lyrics, currentPosition);
   const wordRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
   const lineRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<LibrarySearchRef>(null);
+
+  // Keyboard shortcut: 'S' key to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input field
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      // 'S' key: Focus search
+      if ((e.key === 's' || e.key === 'S') && !e.repeat) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
   // const [ballPosition, setBallPosition] = useState({ left: 0, top: 0, visible: false, isMoving: false });
   // const prevLeftRef = useRef<number>(0);
 
@@ -96,10 +119,8 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
                 <span className="track-card-album track-card-fade">{albumName}</span>
               </div>
             </div>
-            <div className="track-card-search">
-              <LibrarySearch />
-            </div>
             <div className="track-card-controls">
+              <LibrarySearch ref={searchRef} />
               <button onClick={onTogglePlayback} className="play-pause-button" title={isPlaying ? "Pause" : "Play"}>
                 {isPlaying ? (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -124,13 +145,20 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
         <div className="lyrics-container-simple">
           <div className="lyrics-line lyrics-line-active lyrics-line-pause">
             <div className="lyrics-loading-container">
-              {albumArt && (
+              <div className="lyrics-loading-album-wrapper">
                 <img 
-                  src={albumArt} 
-                  alt="Album art" 
-                  className="lyrics-loading-album-cover" 
+                  src="/lp.png" 
+                  alt="Vinyl record" 
+                  className="lyrics-loading-vinyl" 
                 />
-              )}
+                {albumArt && (
+                  <img 
+                    src={albumArt} 
+                    alt="Album art" 
+                    className="lyrics-loading-album-cover" 
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -155,10 +183,8 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
                 <span className="track-card-album track-card-fade">{albumName}</span>
               </div>
             </div>
-            <div className="track-card-search">
-              <LibrarySearch />
-            </div>
             <div className="track-card-controls">
+              <LibrarySearch ref={searchRef} />
               <button onClick={onTogglePlayback} className="play-pause-button" title={isPlaying ? "Pause" : "Play"}>
                 {isPlaying ? (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -222,10 +248,8 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
               <span className="track-card-album track-card-fade">{albumName}</span>
             </div>
           </div>
-          <div className="track-card-search">
-            <LibrarySearch />
-          </div>
           <div className="track-card-controls">
+            <LibrarySearch ref={searchRef} />
             <button onClick={onTogglePlayback} className="play-pause-button" title={isPlaying ? "Pause" : "Play"}>
               {isPlaying ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -248,64 +272,72 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
         </div>
       )}
       <div className="lyrics-container-simple">
-        {isPause ? (
-          <div className="lyrics-line lyrics-line-active lyrics-line-pause">
-            <div className="lyrics-loading-container">
-              {albumArt && (
-                <img 
-                  src={albumArt} 
-                  alt="Album art" 
-                  className="lyrics-loading-album-cover" 
-                />
-              )}
+        {(() => {
+          // Always show lyrics if we have valid content, otherwise show vinyl
+          const hasValidLyrics = currentLine && !isPause && (
+            (currentLine.text && currentLine.text.trim()) || 
+            (currentLine.words && currentLine.words.length > 0)
+          );
+          
+          if (hasValidLyrics) {
+            return (
+              <div 
+                key={currentIndex} 
+                className="lyrics-line lyrics-line-active lyrics-line-enter" 
+                ref={lineRef}
+                onClick={() => handleLineClick(currentIndex)}
+                style={{ cursor: 'pointer' }}
+              >
+                {currentLine.words && currentLine.words.length > 0 ? (
+                  // Render words individually with word-level highlighting
+                  <>
+                    {currentLine.words.map((word, wordIndex) => (
+                      <span
+                        key={wordIndex}
+                        ref={(el) => {
+                          if (el) {
+                            wordRefs.current.set(wordIndex, el);
+                          } else {
+                            wordRefs.current.delete(wordIndex);
+                          }
+                        }}
+                        className={`lyrics-word ${wordIndex === currentWordIndex ? 'lyrics-word-active' : ''}`}
+                      >
+                        {word.text}
+                        {wordIndex < currentLine.words!.length - 1 && ' '}
+                      </span>
+                    ))}
+                  </>
+                ) : (
+                  // Fallback: render as plain text if no word timestamps
+                  currentLine.text || ''
+                )}
+              </div>
+            );
+          }
+          
+          // Default: always show vinyl
+          return (
+            <div className="lyrics-line lyrics-line-active lyrics-line-pause">
+              <div className="lyrics-loading-container">
+                <div className="lyrics-loading-album-wrapper">
+                  <img 
+                    src="/lp.png" 
+                    alt="Vinyl record" 
+                    className="lyrics-loading-vinyl" 
+                  />
+                  {albumArt && (
+                    <img 
+                      src={albumArt} 
+                      alt="Album art" 
+                      className="lyrics-loading-album-cover" 
+                    />
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        ) : currentLine && (
-          <div 
-            key={currentIndex} 
-            className="lyrics-line lyrics-line-active lyrics-line-enter" 
-            ref={lineRef}
-            onClick={() => handleLineClick(currentIndex)}
-            style={{ cursor: 'pointer' }}
-          >
-            {currentLine.words && currentLine.words.length > 0 ? (
-              // Render words individually with word-level highlighting
-              <>
-                {currentLine.words.map((word, wordIndex) => (
-                  <span
-                    key={wordIndex}
-                    ref={(el) => {
-                      if (el) {
-                        wordRefs.current.set(wordIndex, el);
-                      } else {
-                        wordRefs.current.delete(wordIndex);
-                      }
-                    }}
-                    className={`lyrics-word ${wordIndex === currentWordIndex ? 'lyrics-word-active' : ''}`}
-                  >
-                    {word.text}
-                    {wordIndex < currentLine.words!.length - 1 && ' '}
-                  </span>
-                ))}
-                {/* Karaoke ball indicator - COMMENTED OUT */}
-                {/* {ballPosition.visible && (
-                  <span
-                    className={`karaoke-ball ${ballPosition.isMoving ? 'karaoke-ball-moving' : 'karaoke-ball-stopped'}`}
-                    style={{
-                      left: `${ballPosition.left}px`,
-                      top: `${ballPosition.top}px`,
-                    }}
-                  >
-                    ●
-                  </span>
-                )} */}
-              </>
-            ) : (
-              // Fallback: render as plain text if no word timestamps
-              currentLine.text
-            )}
-          </div>
-        )}
+          );
+        })()}
         {nextLine && (
           <div 
             className="lyrics-line lyrics-line-next"
@@ -325,19 +357,6 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
             {line.text}
           </div>
         ))}
-        {!currentLine && remainingLines.length === 0 && (
-          <div className="lyrics-line lyrics-waiting">
-            <div className="lyrics-loading-container">
-              {albumArt && (
-                <img 
-                  src={albumArt} 
-                  alt="Album art" 
-                  className="lyrics-loading-album-cover" 
-                />
-              )}
-            </div>
-          </div>
-        )}
       </div>
       <UpcomingConcerts track={track} />
     </div>

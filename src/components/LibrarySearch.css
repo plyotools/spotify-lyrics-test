@@ -1,7 +1,33 @@
 .library-search-container {
   position: relative;
-  width: 100%;
-  max-width: 180px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.library-search-icon-button {
+  background: transparent;
+  color: #B3B3B3;
+  border: none;
+  padding: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.library-search-icon-button:hover {
+  color: #1DB954;
+  background: #212121;
+}
+
+.library-search-icon-button .library-search-icon {
+  color: inherit;
+  width: 18px;
+  height: 18px;
   margin: 0;
 }
 
@@ -17,6 +43,9 @@
   height: 28px;
   min-height: 28px;
   max-height: 28px;
+  width: 100%;
+  max-width: 180px;
+  min-width: 180px;
 }
 
 .library-search-input-wrapper:focus-within {
@@ -31,6 +60,10 @@
   flex-shrink: 0;
   width: 12px;
   height: 12px;
+}
+
+.library-search-input-wrapper .library-search-icon {
+  margin-right: 0.4rem;
 }
 
 .library-search-input {

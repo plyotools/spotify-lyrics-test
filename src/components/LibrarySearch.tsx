@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { LibraryService } from '../services/library';
 import type { LibraryItem } from '../services/library';
 import { useSpotify } from '../context/SpotifyContext';
@@ -8,8 +8,13 @@ interface LibrarySearchProps {
   onItemSelect?: (item: LibraryItem) => void;
 }
 
-export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
+export interface LibrarySearchRef {
+  focus: () => void;
+}
+
+export const LibrarySearch = forwardRef<LibrarySearchRef, LibrarySearchProps>(({ onItemSelect }, ref) => {
   const { currentTrack } = useSpotify();
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [items, setItems] = useState<LibraryItem[]>([]);
@@ -134,8 +139,27 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
     setSelectedIndex(-1);
   }, [searchQuery, items]);
 
+  // Expose focus method via ref
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      setIsExpanded(true);
+      setTimeout(() => {
+        searchRef.current?.focus();
+      }, 0);
+    },
+  }));
+
+  // Handle icon click to expand
+  const handleIconClick = () => {
+    setIsExpanded(true);
+    setTimeout(() => {
+      searchRef.current?.focus();
+    }, 0);
+  };
+
   // Handle input focus
   const handleFocus = () => {
+    setIsExpanded(true);
     setIsOpen(true);
   };
 
@@ -145,6 +169,10 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
     setTimeout(() => {
       if (!resultsRef.current?.contains(document.activeElement)) {
         setIsOpen(false);
+        // Collapse if search query is empty
+        if (!searchQuery.trim()) {
+          setIsExpanded(false);
+        }
       }
     }, 200);
   };
@@ -155,6 +183,7 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
       await LibraryService.playItem(item.uri);
       setSearchQuery('');
       setIsOpen(false);
+      setIsExpanded(false);
       if (onItemSelect) {
         onItemSelect(item);
       }
@@ -190,8 +219,15 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
         break;
       case 'Escape':
         setIsOpen(false);
-        if (searchRef.current) {
-          searchRef.current.blur();
+        if (searchQuery.trim()) {
+          setSearchQuery('');
+          setSelectedIndex(-1);
+          searchRef.current?.focus();
+        } else {
+          setIsExpanded(false);
+          if (searchRef.current) {
+            searchRef.current.blur();
+          }
         }
         break;
     }
@@ -209,46 +245,72 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
 
   return (
     <div className="library-search-container" ref={containerRef}>
-      <div className="library-search-input-wrapper">
-        <svg
-          className="library-search-icon"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
+      {!isExpanded ? (
+        <button
+          className="library-search-icon-button"
+          onClick={handleIconClick}
+          type="button"
+          title="Search library"
         >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <input
-          ref={searchRef}
-          type="text"
-          className="library-search-input"
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-        />
-        {searchQuery && (
-          <button
-            className="library-search-clear"
-            onClick={() => {
-              setSearchQuery('');
-              setSelectedIndex(-1);
-              searchRef.current?.focus();
-            }}
-            type="button"
+          <svg
+            className="library-search-icon"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-            </svg>
-          </button>
-        )}
-      </div>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+        </button>
+      ) : (
+        <div className="library-search-input-wrapper">
+          <svg
+            className="library-search-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            ref={searchRef}
+            type="text"
+            className="library-search-input"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+          />
+          {searchQuery && (
+            <button
+              className="library-search-clear"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedIndex(-1);
+                searchRef.current?.focus();
+              }}
+              type="button"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
 
       {isOpen && (
         <div className="library-search-results" ref={resultsRef}>
@@ -313,5 +375,7 @@ export const LibrarySearch = ({ onItemSelect }: LibrarySearchProps) => {
       )}
     </div>
   );
-};
+});
+
+LibrarySearch.displayName = 'LibrarySearch';
 
