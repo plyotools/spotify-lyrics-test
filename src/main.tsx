@@ -4,6 +4,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom'
 import { SpotifyProvider } from './context/SpotifyContext'
 import App from './App.tsx'
 import { Callback } from './components/Callback'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import './index.css'
 
 // Handle callback redirect before HashRouter loads
@@ -17,14 +18,16 @@ if (pathname === '/callback' && search && search.includes('code=')) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HashRouter>
-      <SpotifyProvider>
-        <Routes>
-          <Route path="/" element={<App />} />
-          <Route path="/callback" element={<Callback />} />
-          <Route path="/index.html" element={<App />} />
-        </Routes>
-      </SpotifyProvider>
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <SpotifyProvider>
+          <Routes>
+            <Route path="/" element={<App />} />
+            <Route path="/callback" element={<Callback />} />
+            <Route path="/index.html" element={<App />} />
+          </Routes>
+        </SpotifyProvider>
+      </HashRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )

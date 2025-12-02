@@ -36,3 +36,5 @@ Hvis du fortsatt får feil:
 - Kjør `npm run build:extension` på nytt
 
 
+
+

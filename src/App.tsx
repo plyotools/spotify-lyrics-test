@@ -1,7 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSpotify } from './context/SpotifyContext'
 import { Login } from './components/Login'
 import { LyricsDisplay } from './components/LyricsDisplay'
+import { AppStatus } from './components/AppStatus'
+import { logSDKDiagnostics } from './utils/sdkDiagnostics'
 import './App.css'
 
 function App() {
@@ -20,7 +22,49 @@ function App() {
     skipToPreviousLyricLine,
     seekToLine,
     logout,
+    clearError,
   } = useSpotify()
+
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // Fullscreen functionality
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        setIsFullscreen(true)
+      }).catch((err) => {
+        console.error('Error entering fullscreen:', err)
+      })
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false)
+      }).catch((err) => {
+        console.error('Error exiting fullscreen:', err)
+      })
+    }
+  }
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
+  }, [])
+
+  // Expose diagnostic function to window for debugging
+  useEffect(() => {
+    if (isAuthenticated) {
+      (window as any).checkSDK = async () => {
+        await logSDKDiagnostics();
+      };
+      console.log('💡 Run checkSDK() in console to diagnose SDK issues');
+    }
+  }, [isAuthenticated])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -30,6 +74,19 @@ function App() {
       // Don't trigger if user is typing in an input field
       const target = e.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return
+      }
+
+      // F key: Toggle fullscreen
+      if ((e.key === 'f' || e.key === 'F') && !e.repeat) {
+        e.preventDefault()
+        toggleFullscreen()
+        return
+      }
+
+      // ESC: Exit fullscreen
+      if (e.key === 'Escape' && document.fullscreenElement) {
+        document.exitFullscreen()
         return
       }
 
@@ -73,8 +130,35 @@ function App() {
   if (isLoading) {
     return (
       <div className="app">
-        <div className="loading">
-          <p>Loading...</p>
+        <div className="loading" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          gap: '1rem'
+        }}>
+          <div style={{
+            width: '200px',
+            height: '200px',
+            position: 'relative',
+            animation: 'spin 3s linear infinite'
+          }}>
+            <img 
+              src="/lp.png" 
+              alt="Vinyl record" 
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain'
+              }}
+            />
+          </div>
+          <p style={{
+            fontSize: '1.25rem',
+            color: '#ffffff',
+            fontWeight: '500'
+          }}>Loading...</p>
         </div>
       </div>
     )
@@ -87,11 +171,63 @@ function App() {
   
   console.log('[APP] User authenticated, showing main app');
 
+;
+
   return (
     <div className="app">
       {error && (
         <div className="error-banner">
-          <p>{error}</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+            <p style={{ margin: 0, flex: 1 }}>{error}</p>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {error.includes('Rate limited') && (
+                <button
+                  onClick={() => {
+                    clearError();
+                    // Reload page to retry after rate limit
+                    window.location.reload();
+                  }}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    color: '#ffffff',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                >
+                  Retry
+                </button>
+              )}
+              <button
+                onClick={clearError}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: 0.7,
+                }}
+                onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+                onMouseOut={(e) => e.currentTarget.style.opacity = '0.7'}
+                aria-label="Dismiss error"
+                title="Dismiss"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -105,6 +241,8 @@ function App() {
           onTogglePlayback={togglePlayback}
           onSkipToNext={skipToNext}
           onSeekToLine={seekToLine}
+          onToggleFullscreen={toggleFullscreen}
+          isFullscreen={isFullscreen}
         />
       </main>
       
@@ -120,6 +258,8 @@ function App() {
           <line x1="21" y1="12" x2="9" y2="12" />
         </svg>
       </button>
+      
+      {isAuthenticated && <AppStatus />}
     </div>
   )
 }

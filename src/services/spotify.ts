@@ -1,5 +1,6 @@
 import { AuthService } from './auth';
 import type { Track, PlaybackState } from '../types/spotify';
+import { apiCache } from '../utils/apiCache';
 
 // Spotify SDK types
 interface SpotifyPlayer {
@@ -22,6 +23,7 @@ interface SpotifyPlayerConstructor {
 export class SpotifyService {
   private static player: SpotifyPlayer | null = null;
   private static isInitialized = false;
+  private static stateChangeCallback: ((state: PlaybackState | null) => void) | null = null;
 
   static async initializePlayer(): Promise<void> {
     if (this.isInitialized && this.player) {
@@ -121,7 +123,8 @@ export class SpotifyService {
         });
 
         this.player.addListener('ready', ({ device_id }: { device_id: string }) => {
-          console.log('Ready with Device ID', device_id);
+          console.log('✅ Web Playback SDK ready with Device ID:', device_id);
+          console.log('🎵 Event-driven playback updates enabled');
           this.isInitialized = true;
           resolve();
         });
@@ -146,14 +149,44 @@ export class SpotifyService {
           reject(new Error(message));
         });
 
-        // Listen for player state changes to capture track_window
-        (this.player as any).addListener('player_state_changed', (state: any) => {
-          if (state?.track_window) {
+        // Listen for player state changes - use this for real-time updates!
+        (this.player as any).addListener('player_state_changed', (sdkState: any) => {
+          if (sdkState?.track_window) {
             // Store track_window data for later use
             this.lastTrackWindow = {
-              previous_tracks: state.track_window.previous_tracks || [],
-              next_tracks: state.track_window.next_tracks || [],
+              previous_tracks: sdkState.track_window.previous_tracks || [],
+              next_tracks: sdkState.track_window.next_tracks || [],
             };
+          }
+
+          // Convert SDK state to our PlaybackState format and notify callback
+          if (sdkState && this.stateChangeCallback) {
+            const playbackState: PlaybackState = {
+              is_playing: sdkState.paused === false,
+              item: sdkState.track_window?.current_track ? {
+                id: sdkState.track_window.current_track.id,
+                name: sdkState.track_window.current_track.name,
+                artists: sdkState.track_window.current_track.artists.map((a: any) => ({ name: a.name })),
+                album: {
+                  name: sdkState.track_window.current_track.album?.name || '',
+                  images: sdkState.track_window.current_track.album?.images || [],
+                },
+                duration_ms: sdkState.track_window.current_track.duration_ms || 0,
+              } : null,
+              progress_ms: sdkState.position || 0,
+              timestamp: Date.now(),
+              context: {
+                previous_tracks: sdkState.track_window?.previous_tracks || [],
+                next_tracks: sdkState.track_window?.next_tracks || [],
+              },
+            };
+
+            // Update cache with fresh state from SDK
+            apiCache.set('playback_state', playbackState, 10000); // Cache for 10s (SDK updates frequently)
+
+            // Notify callback (context will use this instead of polling!)
+            // This is a real-time event - no API call needed!
+            this.stateChangeCallback(playbackState);
           }
         });
 
@@ -161,6 +194,21 @@ export class SpotifyService {
   }
 
   private static lastTrackWindow: { previous_tracks: any[]; next_tracks: any[] } | null = null;
+
+  /**
+   * Set a callback to receive real-time state updates from Web Playback SDK
+   * This eliminates the need for frequent polling when SDK is available
+   */
+  static setStateChangeCallback(callback: ((state: PlaybackState | null) => void) | null): void {
+    this.stateChangeCallback = callback;
+  }
+
+  /**
+   * Check if Web Playback SDK is available and initialized
+   */
+  static isSDKAvailable(): boolean {
+    return this.isInitialized && this.player !== null;
+  }
 
   static async getCurrentlyPlayingTrack(): Promise<Track | null> {
     try {
@@ -187,7 +235,16 @@ export class SpotifyService {
     }
   }
 
-  static async getPlaybackState(): Promise<PlaybackState | null> {
+  static async getPlaybackState(useCache: boolean = true, skipCache: boolean = false): Promise<PlaybackState | null> {
+    // Check cache first (default 5 second TTL) to reduce API calls
+    const cacheKey = 'playback_state';
+    if (useCache && !skipCache) {
+      const cached = apiCache.get<PlaybackState>(cacheKey);
+      if (cached !== null) {
+        return cached;
+      }
+    }
+
     try {
       const token = await AuthService.getValidToken();
       const response = await fetch('https://api.spotify.com/v1/me/player', {
@@ -209,6 +266,22 @@ export class SpotifyService {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
+        
+        // Handle rate limiting specifically
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After');
+          const retrySeconds = retryAfter ? parseInt(retryAfter, 10) : null;
+          // Log the full response headers for debugging
+          console.warn(`Rate limited (429). Retry after: ${retrySeconds || 'unknown'} seconds`);
+          console.warn('Rate limit headers:', {
+            'retry-after': retryAfter,
+            'x-ratelimit-limit': response.headers.get('x-ratelimit-limit'),
+            'x-ratelimit-remaining': response.headers.get('x-ratelimit-remaining'),
+            'x-ratelimit-reset': response.headers.get('x-ratelimit-reset'),
+          });
+          throw new Error(`429 Too many requests${retrySeconds ? ` - retry after ${retrySeconds}s` : ''}`);
+        }
+        
         console.error('Playback state error:', response.status, errorText);
         throw new Error(`Failed to fetch playback state: ${response.status} ${response.statusText}`);
       }
@@ -257,7 +330,7 @@ export class SpotifyService {
         }
       }
       
-      return {
+      const playbackState: PlaybackState = {
         is_playing: data.is_playing,
         item: data.item,
         progress_ms: data.progress_ms || 0,
@@ -267,6 +340,11 @@ export class SpotifyService {
           next_tracks: nextTracks,
         },
       };
+
+      // Cache the result for 5 seconds (reduces redundant calls)
+      apiCache.set(cacheKey, playbackState, 5000);
+
+      return playbackState;
     } catch (error) {
       // Only log if it's not a refresh token error (that's already logged in auth.ts)
       if (error instanceof Error && !error.message.includes('No refresh token')) {
@@ -327,12 +405,33 @@ export class SpotifyService {
         },
       });
 
-      if (!response.ok && response.status !== 204) {
-        throw new Error('Failed to skip to next track');
+      // 204 No Content is a valid success response for skip
+      if (response.status === 204) {
+        return;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        let errorMessage = 'Failed to skip to next track';
+        
+        if (response.status === 403) {
+          errorMessage = 'No next track available or insufficient permissions';
+        } else if (response.status === 404) {
+          errorMessage = 'No active device found. Please start playing music on a Spotify device.';
+        } else if (response.status === 401) {
+          errorMessage = 'Session expired. Please refresh the page.';
+        } else {
+          errorMessage = `Failed to skip to next track (${response.status})`;
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error skipping to next track:', error);
-      throw error;
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to skip to next track');
     }
   }
 

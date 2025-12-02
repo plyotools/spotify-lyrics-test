@@ -63,3 +63,5 @@ Logs are stored in browser console memory. To persist logs:
 1. Export logs using `window.appLogger.exportLogs()`
 2. Or copy/paste console logs manually
 
+
+

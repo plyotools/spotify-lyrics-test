@@ -1,0 +1,8 @@
+{"timestamp":"2025-12-02T16:51:20.463Z","event_type":"BOOT_START","test_harness":"Spotify Lyrics Player Verification","version":"1.0.0"}
+{"timestamp":"2025-12-02T16:51:20.485Z","event_type":"READY","component":"Test Infrastructure"}
+{"timestamp":"2025-12-02T16:51:20.485Z","event_type":"TEST_START","test_id":"unit-tests","suite":"unit"}
+{"timestamp":"2025-12-02T16:52:08.461Z","event_type":"TEST_PASS","test_id":"unit-tests","duration_ms":47972}
+{"timestamp":"2025-12-02T16:52:08.555Z","event_type":"TEST_START","test_id":"e2e-tests","suite":"e2e"}
+{"timestamp":"2025-12-02T16:53:06.754Z","event_type":"TEST_PASS","test_id":"e2e-tests","duration_ms":58197}
+{"timestamp":"2025-12-02T16:53:07.183Z","event_type":"VERIFY_COMPLETE","total_tests":2,"passed":2,"failed":0,"duration_ms":106720}
+{"timestamp":"2025-12-02T16:53:07.188Z","event_type":"VERIFY_PASS","summary":"All tests passed. Verification complete."}

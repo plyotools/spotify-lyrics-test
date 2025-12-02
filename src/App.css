@@ -2,20 +2,14 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #121212;
+  background: var(--album-darkest-color, #121212);
   color: #ffffff;
   width: 100%;
   max-width: 100%;
   position: relative;
+  transition: background 3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.app-header {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0.5rem 0 0.5rem 1rem;
-  background: #212121;
-}
 
 .logout-button {
   background: transparent;
@@ -77,6 +71,37 @@
   color: #ff6b6b;
 }
 
+.info-banner {
+  background: rgba(29, 185, 84, 0.15);
+  border-left: 4px solid #1DB954;
+  padding: 0.75rem 1rem;
+  margin: 0 1rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.info-banner p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.info-banner-link {
+  background: transparent;
+  border: none;
+  color: #1DB954;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 600;
+  font-size: inherit;
+}
+
+.info-banner-link:hover {
+  color: #1ed760;
+}
+
 .loading {
   display: flex;
   justify-content: center;
@@ -84,6 +109,15 @@
   min-height: 100vh;
   font-size: 1.2rem;
   color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .app-main {
@@ -274,7 +308,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   padding: 2rem;
   gap: 1rem;
@@ -285,6 +319,190 @@
   margin: 0;
   box-sizing: border-box;
   min-height: 0;
+  position: relative;
+}
+
+.lyrics-masked-background {
+  position: fixed;
+  top: -20vh;
+  left: 0;
+  width: 100%;
+  height: 140vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.lyrics-masked-text-wrapper {
+  position: absolute;
+  top: 20vh;
+  left: 0;
+  width: 100vw;
+  height: 140vh;
+  overflow: visible;
+  opacity: 1;
+  transition: opacity 2s ease-in-out;
+}
+
+.lyrics-masked-text-wrapper.lyrics-masked-fade-out {
+  opacity: 0;
+}
+
+.lyrics-masked-text-wrapper.lyrics-masked-fade-in {
+  opacity: 0;
+  animation: fadeInLyrics 2s ease-in-out forwards;
+}
+
+@keyframes fadeInLyrics {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lyrics-masked-text {
+  font-size: 45vw;
+  font-weight: 900;
+  line-height: 0.85;
+  white-space: nowrap;
+  color: #ffffff;
+  background-image: var(--album-art);
+  background-size: var(--background-size, 100vw) var(--background-size, 100vw);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: blur(1px);
+  transform-origin: center center;
+  mix-blend-mode: overlay;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  text-align: center;
+  letter-spacing: -0.02em;
+  pointer-events: none;
+}
+
+.lyrics-masked-text-word-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(var(--target-scale, 1));
+  opacity: var(--target-opacity, 0.08);
+  transition: 
+    opacity 2s ease-out,
+    transform 2s ease-out;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.lyrics-masked-text-word {
+  font-size: 45vw;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: #ffffff;
+  background-image: var(--album-art);
+  background-size: 200vw 200vw;
+  background-position: var(--background-position-x, 50%) var(--background-position-y, 50%);
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform-origin: center center;
+  position: relative;
+  text-align: center;
+  letter-spacing: -0.02em;
+  pointer-events: none;
+  animation: gentleTilt 10s ease-in-out infinite;
+  animation-fill-mode: both;
+  animation-play-state: running;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  padding: 0.15em 0;
+}
+
+@keyframes gentleTilt {
+  0%, 100% {
+    transform: rotate(calc(var(--base-rotation, 0deg) - var(--rotation-range, 8deg)));
+  }
+  50% {
+    transform: rotate(calc(var(--base-rotation, 0deg) + var(--rotation-range, 8deg)));
+  }
+}
+
+@keyframes softWave {
+  0%, 100% {
+    transform: translate(-50%, -50%) rotate(-1deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(1deg);
+  }
+}
+
+@keyframes wordJump {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  60% {
+    opacity: 0.25;
+    transform: translateY(-5px) scale(1.02);
+  }
+  100% {
+    opacity: 0.25;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+@keyframes waveTilt {
+  0% {
+    transform: rotate(-2deg);
+  }
+  25% {
+    transform: rotate(2deg);
+  }
+  50% {
+    transform: rotate(-1deg);
+  }
+  75% {
+    transform: rotate(1.5deg);
+  }
+  100% {
+    transform: rotate(-2deg);
+  }
+}
+
+
+@keyframes coverRotate {
+  0% {
+    background-position: 50% 50%;
+    transform: rotate(-3deg) scale(1);
+  }
+  25% {
+    background-position: 70% 30%;
+    transform: rotate(0deg) scale(1.1);
+  }
+  50% {
+    background-position: 50% 70%;
+    transform: rotate(3deg) scale(1);
+  }
+  75% {
+    background-position: 30% 50%;
+    transform: rotate(0deg) scale(1.1);
+  }
+  100% {
+    background-position: 50% 50%;
+    transform: rotate(-3deg) scale(1);
+  }
 }
 
 /* Track card at the top */
@@ -306,6 +524,7 @@
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   animation: rotateAlbum 8s linear infinite;
+  animation-play-state: running;
   transform-origin: center center;
 }
 
@@ -315,6 +534,15 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateAlbumCentered {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
@@ -351,11 +579,11 @@
   animation-delay: 0s;
 }
 
-.track-card-artist {
+.track-card-album {
   animation-delay: 3s;
 }
 
-.track-card-album {
+.track-card-artist {
   animation-delay: 6s;
 }
 
@@ -459,6 +687,29 @@
 }
 
 .next-track-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.fullscreen-button {
+  background: transparent;
+  color: #B3B3B3;
+  border: none;
+  padding: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.fullscreen-button:hover {
+  color: #1DB954;
+  background: #212121;
+}
+
+.fullscreen-button svg {
   width: 20px;
   height: 20px;
 }
@@ -575,6 +826,13 @@
   transform: scale(1.05);
   padding: 0.75rem 0;
   position: relative;
+  z-index: 2;
+}
+
+.lyrics-line-next,
+.lyrics-line-remaining {
+  position: relative;
+  z-index: 2;
 }
 
 .lyrics-line-pause {
@@ -605,6 +863,7 @@
   width: min(600px, calc(100vw - 10rem), calc(100vh - 16rem));
   height: min(600px, calc(100vw - 10rem), calc(100vh - 16rem));
   aspect-ratio: 1;
+  z-index: 1;
 }
 
 .lyrics-loading-vinyl {
@@ -613,8 +872,10 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  z-index: 0;
+  z-index: 1;
   opacity: 0.9;
+  top: 0;
+  left: 0;
 }
 
 .lyrics-loading-album-cover {
@@ -624,11 +885,21 @@
   border-radius: 50%;
   object-fit: cover;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  animation: rotateAlbum 8s linear infinite;
+  animation: rotateAlbumCentered 8s linear infinite;
+  animation-play-state: running;
   transform-origin: center center;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+}
+
+.lyrics-loading-album-cover.paused {
+  animation-play-state: paused;
+}
+
+.track-card-artwork.paused {
+  animation-play-state: paused;
 }
 
 /* Responsive: smaller on smaller screens when space is limited */
@@ -766,7 +1037,7 @@
 .lyrics-line-next {
   color: #1DB954;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 900;
   text-shadow: 0 0 10px rgba(29, 185, 84, 0.3);
   padding: 0.5rem 0;
   margin: 0;
@@ -779,6 +1050,7 @@
 .lyrics-line-remaining {
   color: #B3B3B3;
   font-size: 0.9rem;
+  font-weight: 700;
   padding: 0.3rem 0;
   margin: 0;
   transition: color 0.2s ease;

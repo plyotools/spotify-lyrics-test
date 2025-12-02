@@ -1,0 +1,31 @@
+{
+  "total_tests": 2,
+  "passed": 2,
+  "failed": 0,
+  "duration_ms": 106720,
+  "coverage": {
+    "requirements": [
+      "Auth Flow (PKCE)",
+      "SDK Integration",
+      "Rate Limiting",
+      "Lyrics Display",
+      "UI Components",
+      "Accessibility",
+      "Error Handling"
+    ],
+    "tests": [
+      {
+        "test_id": "unit-tests",
+        "suite": "unknown",
+        "status": "pass",
+        "duration_ms": 47972
+      },
+      {
+        "test_id": "e2e-tests",
+        "suite": "unknown",
+        "status": "pass",
+        "duration_ms": 58197
+      }
+    ]
+  }
+}

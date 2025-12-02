@@ -90,15 +90,14 @@ export class AuthService {
     localStorage.setItem(CODE_VERIFIER_KEY, codeVerifier);
     sessionStorage.setItem(CODE_VERIFIER_KEY, codeVerifier);
     
-    // For Chrome extensions, also pass code verifier in state parameter to handle cross-origin issues
+    // Always pass code verifier in state parameter as backup (handles storage clearing issues)
+    // This ensures we can retrieve it even if localStorage/sessionStorage is cleared
     const isExtension = window.location.origin.startsWith('chrome-extension://');
     let redirectUri = REDIRECT_URI;
-    let state = '';
+    // Always encode code verifier in state parameter as backup
+    const state = btoa(JSON.stringify({ verifier: codeVerifier, timestamp: Date.now() }));
     
     if (isExtension) {
-      // Encode code verifier in state parameter for extension context
-      // This allows us to retrieve it from the callback URL
-      state = btoa(JSON.stringify({ verifier: codeVerifier, timestamp: Date.now() }));
       // Store in extension storage as well
       try {
         if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
@@ -109,18 +108,21 @@ export class AuthService {
       }
     }
     
-    console.log('[LOGIN] Code verifier stored in localStorage and sessionStorage');
+    console.log('[LOGIN] Code verifier stored in localStorage, sessionStorage, and state parameter');
     if (isExtension) {
-      console.log('[LOGIN] Extension context detected - code verifier also in state parameter');
+      console.log('[LOGIN] Extension context detected - code verifier also in chrome.storage');
     }
     
     const scopeString = scopes.join(' ');
-    console.log('Authorization request:', {
+    console.log('[AUTH] Authorization request:', {
       redirect_uri: redirectUri,
-      client_id: SPOTIFY_CLIENT_ID,
+      client_id: SPOTIFY_CLIENT_ID.substring(0, 10) + '...',
       scopes: scopeString,
+      scope_list: scopes,
       is_extension: isExtension,
+      show_dialog: true, // Force consent screen for scope approval
     });
+    console.log('[AUTH] Requesting scopes:', scopes);
     
     const params = new URLSearchParams({
       client_id: SPOTIFY_CLIENT_ID,
@@ -129,14 +131,42 @@ export class AuthService {
       scope: scopeString,
       code_challenge_method: 'S256',
       code_challenge: codeChallenge,
+      show_dialog: 'true', // Force consent screen to ensure user approves all scopes (including streaming)
+      state: state, // Always include state with code verifier as backup
     });
-    
-    if (state) {
-      params.append('state', state);
-    }
     
     const authUrl = `https://accounts.spotify.com/authorize?${params.toString()}`;
     console.log('Full auth URL (first 200 chars):', authUrl.substring(0, 200));
+    
+    // Verify streaming scope is in the URL
+    if (!authUrl.includes('streaming')) {
+      console.error('⚠️ WARNING: "streaming" scope not found in auth URL!');
+    } else {
+      console.log('✅ "streaming" scope is included in auth URL');
+    }
+    
+    // Log the full scope parameter for verification
+    const scopeParam = params.get('scope');
+    console.log('[AUTH] Scope parameter value:', scopeParam);
+    console.log('[AUTH] Scope parameter includes "streaming":', scopeParam?.includes('streaming'));
+    
+    // Log the FULL authorization URL for debugging (decode URL to make it readable)
+    console.log('[AUTH] ════════════════════════════════════════════════════════');
+    console.log('[AUTH] 📋 AUTHORIZATION URL DEBUG INFO:');
+    console.log('[AUTH] ════════════════════════════════════════════════════════');
+    try {
+      const urlObj = new URL(authUrl);
+      const scopeParam = urlObj.searchParams.get('scope');
+      console.log('[AUTH] Scope parameter (decoded):', decodeURIComponent(scopeParam || ''));
+      console.log('[AUTH] Scope includes "streaming":', scopeParam?.includes('streaming') ? '✅ YES' : '❌ NO');
+      console.log('[AUTH] All scopes requested:', scopeParam?.split(' ') || []);
+    } catch (e) {
+      console.warn('[AUTH] Could not parse URL:', e);
+    }
+    console.log('[AUTH] ⚠️  IMPORTANT: Before approving, check the browser address bar!');
+    console.log('[AUTH] The URL should include: scope=...streaming...');
+    console.log('[AUTH] ════════════════════════════════════════════════════════');
+    
     return authUrl;
   }
 
@@ -151,6 +181,14 @@ export class AuthService {
       sessionStorage.removeItem(CODE_VERIFIER_KEY);
     }
     const url = await this.getAuthUrl();
+    console.log('[LOGIN] Code verifier should be stored. Verifying...');
+    const storedLocal = localStorage.getItem(CODE_VERIFIER_KEY);
+    const storedSession = sessionStorage.getItem(CODE_VERIFIER_KEY);
+    console.log('[LOGIN] Code verifier stored - localStorage:', !!storedLocal, 'sessionStorage:', !!storedSession);
+    if (!storedLocal && !storedSession) {
+      console.error('[LOGIN] ERROR: Code verifier not stored before redirect!');
+      throw new Error('Failed to store code verifier. Please try again.');
+    }
     console.log('[LOGIN] Redirecting to Spotify auth URL');
     window.location.href = url;
   }
