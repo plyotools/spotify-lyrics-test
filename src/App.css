@@ -546,6 +546,30 @@
   }
 }
 
+/* Word cloud background with circular movement (no rotation, no tilt) */
+.wordcloud-background {
+  animation: circleWordCloud 60s linear infinite;
+  transform-origin: center center;
+}
+
+@keyframes circleWordCloud {
+  0% {
+    transform: translate(-50%, -50%) translate(0, -20vh);
+  }
+  25% {
+    transform: translate(-50%, -50%) translate(20vh, 0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate(0, 20vh);
+  }
+  75% {
+    transform: translate(-50%, -50%) translate(-20vh, 0);
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(0, -20vh);
+  }
+}
+
 .track-card-info {
   display: flex;
   flex-direction: column;

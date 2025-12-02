@@ -15,7 +15,9 @@
     "test:all": "npm run test && npm run test:e2e && npm run proof:generate",
     "proof:generate": "tsx scripts/generate-proof-pack.ts",
     "verify": "tsx scripts/run-verification.ts",
-    "verify:full": "npm run test:all"
+    "verify:full": "npm run test:all",
+    "wordcloud:server": "python3 scripts/wordcloud_server.py",
+    "wordcloud:generate": "python3 scripts/generate_wordcloud.py"
   },
   "dependencies": {
     "react": "^19.2.0",

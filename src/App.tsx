@@ -3,6 +3,8 @@ import { useSpotify } from './context/SpotifyContext'
 import { Login } from './components/Login'
 import { LyricsDisplay } from './components/LyricsDisplay'
 import { AppStatus } from './components/AppStatus'
+import { WordCloudBackground } from './components/WordCloudBackground'
+import { extractDarkestColors } from './utils/colorExtractor'
 import { logSDKDiagnostics } from './utils/sdkDiagnostics'
 import './App.css'
 
@@ -26,6 +28,19 @@ function App() {
   } = useSpotify()
 
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [wordCloudColors, setWordCloudColors] = useState<string[]>([])
+
+  // Extract darkest colors from album art for word cloud
+  useEffect(() => {
+    if (!currentTrack?.album.images[0]?.url) {
+      setWordCloudColors([])
+      return
+    }
+
+    extractDarkestColors(currentTrack.album.images[0].url, 5)
+      .then(colors => setWordCloudColors(colors))
+      .catch(() => setWordCloudColors([]))
+  }, [currentTrack?.album.images[0]?.url])
 
   // Fullscreen functionality
   const toggleFullscreen = () => {
@@ -175,6 +190,15 @@ function App() {
 
   return (
     <div className="app">
+      {/* Word cloud background - behind everything including moving animations */}
+      {lyrics && currentTrack && (
+        <WordCloudBackground 
+          lyrics={lyrics}
+          colors={wordCloudColors.length > 0 ? wordCloudColors : ['#FFFFFF']}
+          visible={true}
+          opacity={0.2}
+        />
+      )}
       {error && (
         <div className="error-banner">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>

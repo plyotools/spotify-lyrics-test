@@ -332,6 +332,130 @@ export async function extractVividLightColors(imageUrl: string, count: number = 
 }
 
 /**
+ * Extracts multiple darkest colors from an image
+ * @param imageUrl - URL of the image to analyze
+ * @param count - Number of colors to extract (default: 5)
+ * @returns Promise resolving to an array of hex color strings
+ */
+export async function extractDarkestColors(imageUrl: string, count: number = 5): Promise<string[]> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          resolve(Array(count).fill('#121212'));
+          return;
+        }
+        
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        let imageData;
+        try {
+          imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        } catch (e) {
+          resolve(Array(count).fill('#121212'));
+          return;
+        }
+        const data = imageData.data;
+        
+        const sampleRate = 10;
+        const darkMin = 80; // Minimum brightness - clearly visible on dark background
+        const darkMax = 160; // Maximum brightness - visible but still dark
+        const colorCandidates: Array<{ r: number; g: number; b: number; darkness: number }> = [];
+        
+        // Collect all dark but visible colors
+        for (let i = 0; i < data.length; i += 4 * sampleRate) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const a = data[i + 3];
+          
+          if (a < 128) continue;
+          
+          const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+          
+          // Only consider dark colors that are still visible (not too dark)
+          if (brightness >= darkMin && brightness < darkMax) {
+            const saturation = calculateSaturation(r, g, b);
+            // Weight by darkness (darker = higher value) and saturation
+            // Prefer darker colors but ensure they're visible
+            const darkness = (darkMax - brightness) / (darkMax - darkMin) * (1 + saturation);
+            
+            colorCandidates.push({ r, g, b, darkness });
+          }
+        }
+        
+        // Sort by darkness (darkest first)
+        colorCandidates.sort((a, b) => b.darkness - a.darkness);
+        
+        // Remove similar colors and get distinct ones
+        const distinctColors: Array<{ r: number; g: number; b: number }> = [];
+        for (const candidate of colorCandidates) {
+          if (distinctColors.length >= count) break;
+          
+          // Check if this color is too similar to existing ones
+          const isSimilar = distinctColors.some(existing => {
+            const rDiff = Math.abs(existing.r - candidate.r);
+            const gDiff = Math.abs(existing.g - candidate.g);
+            const bDiff = Math.abs(existing.b - candidate.b);
+            return (rDiff + gDiff + bDiff) < 40; // Threshold for similarity
+          });
+          
+          if (!isSimilar) {
+            distinctColors.push({ r: candidate.r, g: candidate.g, b: candidate.b });
+          }
+        }
+        
+        // Convert to hex strings
+        const colors = distinctColors.map(c => 
+          `#${c.r.toString(16).padStart(2, '0')}${c.g.toString(16).padStart(2, '0')}${c.b.toString(16).padStart(2, '0')}`
+        );
+        
+        // Fill remaining slots with the last color or default
+        while (colors.length < count) {
+          colors.push(colors.length > 0 ? colors[colors.length - 1] : '#808080');
+        }
+        
+        // Ensure all colors are visible (brightness >= 60)
+        const visibleColors = colors.map(color => {
+          const r = parseInt(color.slice(1, 3), 16);
+          const g = parseInt(color.slice(3, 5), 16);
+          const b = parseInt(color.slice(5, 7), 16);
+          const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+          
+          // If too dark, lighten it to ensure visibility
+          if (brightness < 80) {
+            const lightenFactor = 80 / brightness;
+            const newR = Math.min(255, Math.round(r * lightenFactor));
+            const newG = Math.min(255, Math.round(g * lightenFactor));
+            const newB = Math.min(255, Math.round(b * lightenFactor));
+            return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+          }
+          return color;
+        });
+        
+        resolve(visibleColors.slice(0, count));
+      } catch (error) {
+        resolve(Array(count).fill('#121212'));
+      }
+    };
+    
+    img.onerror = () => {
+      resolve(Array(count).fill('#121212'));
+    };
+    
+    img.src = imageUrl;
+  });
+}
+
+/**
  * Extracts the most vivid (saturated) midtone color from an image
  * Midtones are colors with brightness between 85-170 (mid-range)
  * @param imageUrl - URL of the image to analyze
