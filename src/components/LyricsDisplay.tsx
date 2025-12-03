@@ -365,7 +365,7 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
                 <img 
                   src={albumArt} 
                   alt="Album art" 
-                  className={`lyrics-loading-album-cover ${!isPlaying ? 'paused' : ''}`}
+                  className="lyrics-loading-album-cover"
                 />
               )}
               </div>
@@ -734,67 +734,52 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
           
           if (hasValidLyrics) {
             return (
-          <div 
-            key={currentIndex} 
-            className="lyrics-line lyrics-line-active lyrics-line-enter" 
-            ref={lineRef}
-            onClick={() => handleLineClick(currentIndex)}
-                style={{ 
-                  cursor: 'pointer',
-                  color: currentTransitionColor,
-                  textShadow: `0 0 20px ${hexToRgba(currentTransitionColor, 0.4)}`,
-                  transition: 'color 50s ease-in-out, text-shadow 50s ease-in-out'
-                }}
-          >
-            {currentLine.words && currentLine.words.length > 0 ? (
-              // Render words individually with word-level highlighting
-              <>
-                {currentLine.words.map((word, wordIndex) => (
-                  <span
-                    key={wordIndex}
-                    ref={(el) => {
-                      if (el) {
-                        wordRefs.current.set(wordIndex, el);
-                      } else {
-                        wordRefs.current.delete(wordIndex);
-                      }
-                    }}
-                    className={`lyrics-word ${wordIndex === currentWordIndex ? 'lyrics-word-active' : ''}`}
-                  >
-                    {word.text}
-                    {wordIndex < currentLine.words!.length - 1 && ' '}
-                  </span>
-                ))}
-              </>
-            ) : (
-              // Fallback: render as plain text if no word timestamps
-                  currentLine.text || ''
-            )}
-          </div>
+          <>
+            <div 
+              key={currentIndex} 
+              className="lyrics-line lyrics-line-active lyrics-line-enter" 
+              ref={lineRef}
+              onClick={() => handleLineClick(currentIndex)}
+                  style={{ 
+                    cursor: 'pointer',
+                    color: currentTransitionColor,
+                    textShadow: `0 0 20px ${hexToRgba(currentTransitionColor, 0.4)}`,
+                    transition: 'color 50s ease-in-out, text-shadow 50s ease-in-out',
+                    position: 'relative',
+                    zIndex: 2
+                  }}
+            >
+              {currentLine.words && currentLine.words.length > 0 ? (
+                // Render words individually with word-level highlighting
+                <>
+                  {currentLine.words.map((word, wordIndex) => (
+                    <span
+                      key={wordIndex}
+                      ref={(el) => {
+                        if (el) {
+                          wordRefs.current.set(wordIndex, el);
+                        } else {
+                          wordRefs.current.delete(wordIndex);
+                        }
+                      }}
+                      className={`lyrics-word ${wordIndex === currentWordIndex ? 'lyrics-word-active' : ''}`}
+                    >
+                      {word.text}
+                      {wordIndex < currentLine.words!.length - 1 && ' '}
+                    </span>
+                  ))}
+                </>
+              ) : (
+                // Fallback: render as plain text if no word timestamps
+                    currentLine.text || ''
+              )}
+            </div>
+          </>
             );
           }
           
-          // Default: always show vinyl
-          return (
-            <div className="lyrics-line lyrics-line-active lyrics-line-pause">
-              <div className="lyrics-loading-container">
-                <div className="lyrics-loading-album-wrapper">
-                  <img 
-                    src="/lp.png" 
-                    alt="Vinyl record" 
-                    className="lyrics-loading-vinyl" 
-                  />
-                  {albumArt && (
-                    <img 
-                      src={albumArt} 
-                      alt="Album art" 
-                      className={`lyrics-loading-album-cover ${!isPlaying ? 'paused' : ''}`}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-          );
+          // Pause state - don't show vinyl/cover when lyrics are present
+          return null;
         })()}
         {nextLine && (
           <div 

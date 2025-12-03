@@ -196,7 +196,7 @@ function App() {
           lyrics={lyrics}
           colors={wordCloudColors.length > 0 ? wordCloudColors : ['#FFFFFF']}
           visible={true}
-          opacity={0.2}
+          opacity={0.8}
         />
       )}
       {error && (

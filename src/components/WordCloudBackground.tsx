@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { LyricsData } from '../types/lyrics';
 import { extractLyricsText, areLyricsReady } from '../utils/generateWordCloud';
 
@@ -18,9 +18,24 @@ export const WordCloudBackground = ({
   const [wordCloudImage, setWordCloudImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [serverAvailable, setServerAvailable] = useState<boolean | null>(null);
+  const [lastLyricsHash, setLastLyricsHash] = useState<string>('');
+
+  // Create a hash of lyrics content to detect changes
+  const lyricsHash = useMemo(() => {
+    if (!lyrics) return '';
+    const lyricsText = extractLyricsText(lyrics);
+    return `${lyricsText.substring(0, 100)}_${lyrics.lines.length}`;
+  }, [lyrics]);
 
   useEffect(() => {
-    console.log('🔍 WordCloud useEffect triggered', { hasLyrics: !!lyrics, visible, colorsCount: colors.length });
+    console.log('🔍 WordCloud useEffect triggered', { hasLyrics: !!lyrics, visible, colorsCount: colors.length, lyricsHash });
+    
+    // If lyrics changed, clear the old word cloud to force regeneration
+    if (lyricsHash && lyricsHash !== lastLyricsHash) {
+      console.log('🔄 Lyrics changed, clearing old word cloud to force regeneration');
+      setWordCloudImage(null);
+      setLastLyricsHash(lyricsHash);
+    }
     
     // Validate that lyrics are fully ready
     // For testing, allow even without colors (we use white anyway)
@@ -90,8 +105,10 @@ export const WordCloudBackground = ({
           } catch (healthError) {
             // Server is not available - keep existing image if we have one
             setServerAvailable(false);
-            console.error('❌ Word cloud server health check failed:', healthError);
-            console.warn('⚠️ Word cloud server not available, keeping existing image if any');
+            const errorMsg = healthError instanceof Error ? healthError.message : String(healthError);
+            console.error('❌ Word cloud server health check failed:', errorMsg);
+            console.warn('⚠️ Word cloud server not available at http://localhost:5001');
+            console.warn('💡 Make sure the server is running: npm run wordcloud:server');
             setIsGenerating(false);
             return;
           }
@@ -151,11 +168,13 @@ export const WordCloudBackground = ({
             // Log all errors for debugging
             console.error('❌ Word cloud generation error:', error);
             if (error instanceof TypeError && error.message === 'Failed to fetch') {
-              console.error('❌ Server not available or connection failed - keeping existing image');
+              console.error('❌ Connection failed - Word cloud server not reachable');
+              console.error('💡 Make sure the server is running: npm run wordcloud:server');
+              console.error('💡 Check if port 5001 is accessible');
               setServerAvailable(false);
               // Don't clear existing image - keep showing what we have
             } else if (error instanceof Error && error.name === 'AbortError') {
-              console.error('❌ Request timed out - keeping existing image');
+              console.error('❌ Request timed out after 30 seconds - keeping existing image');
               setServerAvailable(false);
               // Don't clear existing image - keep showing what we have
             } else {
@@ -173,7 +192,7 @@ export const WordCloudBackground = ({
     return () => {
       clearTimeout(lyricsTimeoutId);
     };
-  }, [lyrics, colors, visible]);
+  }, [lyrics, colors, visible, lyricsHash, lastLyricsHash, wordCloudImage]);
 
   // Debug: Log when word cloud is ready
   useEffect(() => {
@@ -197,7 +216,9 @@ export const WordCloudBackground = ({
   }
   
   if (!wordCloudImage) {
-    console.log('⏳ Word cloud image not loaded yet');
+    console.log('⏳ Word cloud image not loaded yet - will generate when lyrics are ready');
+    // Don't return null - let the useEffect generate it
+    // Return null only if we're not supposed to be visible
     return null;
   }
 
@@ -211,9 +232,9 @@ export const WordCloudBackground = ({
           left: '50%',
           width: '150vw', // Larger to prevent edges from showing
           height: '150vh', // Larger to prevent edges from showing
-          zIndex: 0, // Behind word effects (z-index 1+) but visible
+          zIndex: -1, // Behind masked background (z-index 0) but visible
           pointerEvents: 'none',
-          opacity: opacity || 0.2, // Use prop or default to 20% opacity (80% transparent)
+          opacity: opacity || 0.8, // Use prop or default to 80% opacity
           backgroundImage: wordCloudImage ? `url(${wordCloudImage})` : 'none',
           backgroundSize: 'cover', // Fill the space
           backgroundRepeat: 'no-repeat',

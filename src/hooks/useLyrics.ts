@@ -68,25 +68,37 @@ export const useLyrics = (lyrics: LyricsData | null, currentPosition: number): A
 
     // Find the current word within the line
     if (currentLine && currentLine.words && currentLine.words.length > 0) {
-      // Find the last word where time <= currentPosition
-      for (let i = currentLine.words.length - 1; i >= 0; i--) {
-        const word = currentLine.words[i];
-        const wordEndTime = word.endTime || (i < currentLine.words.length - 1 
-          ? currentLine.words[i + 1].time 
-          : lineEndTime || currentLine.time + 3000);
-        
-        if (word.time <= currentPosition && currentPosition <= wordEndTime) {
-          currentWordIndex = i;
-          break;
-        }
-      }
-      
-      // If no word matches, check if we're before the first word
-      if (currentWordIndex === -1 && currentLine.words[0]?.time > currentPosition) {
+      // First, check if we're before the first word
+      if (currentLine.words[0].time > currentPosition) {
         currentWordIndex = -1; // Before first word
-      } else if (currentWordIndex === -1) {
-        // We're in the line but past all words, show last word
-        currentWordIndex = currentLine.words.length - 1;
+      } else {
+        // Find the currently active word
+        // A word is active when: currentPosition >= word.time AND currentPosition < nextWord.time
+        // Search through words to find the one we're currently in
+        for (let i = 0; i < currentLine.words.length; i++) {
+          const word = currentLine.words[i];
+          
+          // Skip words that haven't started yet
+          if (currentPosition < word.time) {
+            continue;
+          }
+          
+          // Check if we're before the next word starts (or if this is the last word)
+          const nextWordStartTime = i < currentLine.words.length - 1
+            ? currentLine.words[i + 1].time
+            : (lineEndTime || currentLine.time + 3000);
+          
+          // If we're at or past this word's start time and before the next word starts
+          if (currentPosition < nextWordStartTime) {
+            currentWordIndex = i;
+            break;
+          }
+        }
+        
+        // If we've passed all words, show the last word
+        if (currentWordIndex === -1 && currentPosition >= currentLine.words[0].time) {
+          currentWordIndex = currentLine.words.length - 1;
+        }
       }
     }
 

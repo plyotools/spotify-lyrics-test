@@ -61,6 +61,7 @@ def find_system_font():
     
     # If local font exists, use it
     if os.path.exists(local_roboto_bold):
+        print(f"✅ Using local Roboto Bold: {local_roboto_bold}")
         return local_roboto_bold
     
     # Roboto font paths - prefer Bold
@@ -88,11 +89,12 @@ def find_system_font():
     # Try to find Roboto Bold (prioritizing Bold)
     for path in roboto_paths:
         if os.path.exists(path):
+            print(f"✅ Found Roboto font: {path}")
             return path
     
     # If not found, try to download Roboto Bold from Google Fonts
     try:
-        print("📥 Downloading Roboto Bold from Google Fonts...")
+        print("📥 Roboto Bold not found locally. Downloading from Google Fonts...")
         roboto_bold_url = "https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Bold.ttf"
         urllib.request.urlretrieve(roboto_bold_url, local_roboto_bold)
         print(f"✅ Downloaded Roboto Bold to {local_roboto_bold}")
@@ -187,7 +189,7 @@ def generate_wordcloud(
         'max_words': max_words,
         'relative_scaling': relative_scaling,
         'color_func': color_func,  # Use darkest colors from album cover
-        'prefer_horizontal': 0.1,  # More vertical words for better packing
+        'prefer_horizontal': 0.6,  # More horizontal words (60% horizontal, 40% vertical) to ensure horizontal words appear
         'min_font_size': 40,  # Larger minimum font size
         'max_font_size': 300,  # Larger maximum font size
         'font_step': 4,  # More size variation
@@ -200,6 +202,12 @@ def generate_wordcloud(
     # Add font path if found
     if font_path:
         wordcloud_params['font_path'] = font_path
+        print(f"🔤 Using font: {font_path}")
+    else:
+        print("⚠️ No Roboto font found, using default font. Font may not match app design.")
+    
+    # Log the prefer_horizontal setting for debugging
+    print(f"🔤 Word cloud generation: prefer_horizontal = {wordcloud_params['prefer_horizontal']} (0.6 = 60% horizontal, 40% vertical)")
     
     wordcloud = WordCloud(**wordcloud_params).generate(text)
     

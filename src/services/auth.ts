@@ -22,9 +22,9 @@ const getDefaultRedirectUri = () => {
   
   const origin = window.location.origin;
   // For Chrome extensions, we need to use a web URL that Spotify accepts
-  // Default to 127.0.0.1:5173/callback (the original working setup)
+  // Default to 127.0.0.1:5175/callback (updated port to avoid conflicts)
   if (origin.startsWith('chrome-extension://')) {
-    return 'http://127.0.0.1:5173/callback';
+    return 'http://127.0.0.1:5175/callback';
   }
   // Replace localhost with 127.0.0.1 if needed
   if (origin.includes('localhost')) {
