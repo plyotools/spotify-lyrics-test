@@ -41,3 +41,5 @@ The log follows JSONL format with these event types:
 - **E2E Tests**: Full user flows
 - **Accessibility Tests**: Automated a11y checks
 
+
+

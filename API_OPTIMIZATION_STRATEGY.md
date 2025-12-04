@@ -103,3 +103,5 @@ Track these metrics to validate optimization:
    - Resume polling when tab becomes active
    - Use Page Visibility API
 
+
+

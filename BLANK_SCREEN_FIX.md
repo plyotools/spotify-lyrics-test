@@ -66,3 +66,5 @@ The app IS requesting the `streaming` scope (see `src/services/auth.ts` line 79)
 - ✅ 5-second initial delay (faster startup)
 - ⚠️ User needs to re-authenticate to get streaming scope
 
+
+

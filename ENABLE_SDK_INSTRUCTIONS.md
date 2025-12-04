@@ -92,3 +92,5 @@ Only validation every 60-180s:
 4. **Rate limiting will be practically eliminated!**
 
 The hard work is done - just refresh your token! 🎉
+
+

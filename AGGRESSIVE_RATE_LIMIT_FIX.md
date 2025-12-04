@@ -56,3 +56,5 @@ Time 150s: ✅ Resume at 10-minute intervals
 ✅ **More conservative minimums** - 10 seconds minimum prevents too-frequent polling
 
 The app will now be MUCH more conservative about API calls, especially after rate limiting occurs!
+
+
