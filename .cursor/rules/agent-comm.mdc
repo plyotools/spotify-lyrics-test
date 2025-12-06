@@ -260,14 +260,20 @@ Agents must **always**:
 ## Integration with Other Rules
 
 This Agent Comm Rules file works in conjunction with:
+- **`coding-principles.mdc`** - Coding standards and best practices (READ THIS ALONGSIDE agent-comm)
 - `runtime.mdc` - Runtime and logging rules
 - `launch.mdc` - `/launch` command rules (use `/launch` for explicit launches)
 - `release.mdc` - `/release` command rules (use `/release` for explicit releases)
 - `ship.mdc` - Ship It command rules
 
+**CRITICAL**: `agent-comm.mdc` and `coding-principles.mdc` work together:
+- **agent-comm.mdc**: Defines HOW to communicate (simple language, execute commands, verify fixes)
+- **coding-principles.mdc**: Defines WHAT standards to follow (code quality, testing, security)
+- **Both are mandatory** - read and follow both files together
+
 **Important**: When users say "launch it", "release it", or use slash commands, follow the exact procedure in the corresponding rule file. Natural language is the simplest way - no need to create custom commands.
 
-Agents should follow all applicable rule files, with this communication file providing the foundational interaction patterns.
+Agents should follow all applicable rule files, with this communication file and coding principles providing the foundational patterns.
 
 ## Version and Updates
 

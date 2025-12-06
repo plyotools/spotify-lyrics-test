@@ -202,11 +202,16 @@ This document defines the core coding principles and standards for all projects 
 ## Integration with Other Rules
 
 This Coding Principles file works in conjunction with:
-- `agent-comm.mdc` - Communication and workflow rules
+- **`agent-comm.mdc`** - Communication and workflow rules (READ THIS ALONGSIDE coding-principles)
 - `runtime.mdc` - Runtime and logging rules
 - `launch.mdc` - Launch command rules
 - `release.mdc` - Release command rules
 - `ship.mdc` - Ship It command rules
+
+**CRITICAL**: `coding-principles.mdc` and `agent-comm.mdc` work together:
+- **agent-comm.mdc**: Defines HOW to communicate (simple language, execute commands, verify fixes)
+- **coding-principles.mdc**: Defines WHAT standards to follow (code quality, testing, security)
+- **Both are mandatory** - read and follow both files together
 
 **Important**: These principles should guide all code changes, whether made by developers or AI agents. When in doubt, prioritize clarity, maintainability, and correctness.
 

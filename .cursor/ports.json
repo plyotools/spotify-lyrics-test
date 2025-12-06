@@ -1,9 +1,21 @@
 {
   "schemaVersion": "1.0",
   "services": {
-    "api": {
-      "port": 8001,
-      "url": "http://localhost:8001"
+    "web": {
+      "port": 5174,
+      "url": "http://localhost:5174"
+    },
+    "service5175": {
+      "port": 5175,
+      "url": "http://localhost:5175"
+    },
+    "service5101": {
+      "port": 5101,
+      "url": "http://localhost:5101"
+    },
+    "service5100": {
+      "port": 5100,
+      "url": "http://localhost:5100"
     }
   }
 }

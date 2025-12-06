@@ -18,6 +18,7 @@ When the user says "release it", "release", or uses `/release`:
    - Sets up remote origin
    - Pushes code to GitHub
    - Returns repository URL
+   - **If suburl provided**: Automatically detects project type, builds if needed, configures GitHub Pages, and deploys site
 
 3. **User Experience**:
    - Show simple confirmation: "Done. Your project is available at: <repo-url>"
@@ -33,6 +34,32 @@ When the user says "release it", "release", or uses `/release`:
    - Project registry is updated with repo URL
    - `.cursor/control-center.json` is updated
    - Future "ship it" commands will push to this repository
+   - **If GitHub Pages deployed**: Site URL is stored and deployment status is tracked
+
+## GitHub Pages Deployment
+
+When releasing with a suburl (via UI dialog):
+- Project type is automatically detected (static, needs-build, or dynamic)
+- If project needs build, it's built automatically and artifacts are committed
+- Build output in `dist/`, `build/`, etc. is copied to root for GitHub Pages
+- GitHub Pages is configured with the correct source branch and folder
+- Deployment status is monitored and user is notified when site is live
+- Site URL format: `https://<owner>.github.io/<suburl>` (suburl becomes the repo name)
+
+## End-to-End Testing Requirement
+
+**CRITICAL**: Before marking any release/deployment feature as complete:
+1. **Test with a real project**: Use an actual project (e.g., Spotify Lyrics Player)
+2. **Verify the page is live**: Check that `https://<owner>.github.io/<repo>` actually loads
+3. **Fix obstacles**: Debug and fix any errors encountered during testing
+4. **Show proof**: Provide the actual live URL as proof the deployment worked
+5. **Update rules**: Document any issues found and how they were resolved
+
+**Never claim "fixed" or "complete" without:**
+- Actually testing the full flow end-to-end
+- Verifying the GitHub Pages site is accessible
+- Confirming the URL works in a browser
+- Showing the actual live URL as proof
 
 ## Non-Interactive Flow
 
