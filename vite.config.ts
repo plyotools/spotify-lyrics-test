@@ -4,6 +4,7 @@ import { resolve } from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/spotify-lyrics-test/',
   plugins: [react()],
   server: {
     host: '127.0.0.1',
