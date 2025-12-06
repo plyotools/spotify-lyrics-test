@@ -1,4 +1,8 @@
 {
   "rulesVersion": "2025.01.15-07",
-  "lastSync": "2025-12-06T17:45:48.650Z"
+  "lastSync": "2025-12-06T17:45:48.650Z",
+  "repoUrl": "https://github.com/plyotools/spotify-lyrics-test.git",
+  "lastRelease": "2025-12-06T17:50:41.086Z",
+  "lastReleaseBranch": "main",
+  "pagesUrl": "https://plyotools.github.io/spotify-lyrics-test"
 }
