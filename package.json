@@ -17,7 +17,13 @@
     "verify": "tsx scripts/run-verification.ts",
     "verify:full": "npm run test:all",
     "wordcloud:server": "python3 scripts/wordcloud_server.py",
-    "wordcloud:generate": "python3 scripts/generate_wordcloud.py"
+    "wordcloud:generate": "python3 scripts/generate_wordcloud.py",
+    "dev:web": "echo 'Configure dev:web script for your project'",
+    "dev:api": "echo 'Configure dev:api script for your project'",
+    "dev:all": "npm run dev:web & npm run dev:api",
+    "diagnose": "tail -n 50 .dev.log 2>/dev/null || echo 'No .dev.log found'; echo ''; echo 'Port assignments:'; cat .cursor/ports.json 2>/dev/null || echo 'No ports.json found'; echo ''; echo 'Node version:'; node --version; echo 'NPM version:'; npm --version",
+    "ship": "npm test 2>/dev/null || true; npm run build 2>/dev/null || true; git add . && git commit -m 'Ship changes' && git push",
+    "release": "ccc release-project --path ."
   },
   "dependencies": {
     "react": "^19.2.0",

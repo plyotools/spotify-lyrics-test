@@ -1,0 +1,247 @@
+# Coding Principles
+
+⚠️ **MANDATORY PRINCIPLES - YOU MUST READ AND FOLLOW THESE** ⚠️
+
+This document defines the core coding principles and standards for all projects managed by the Cursor Control Center. These principles apply across all projects and should be followed consistently by both developers and AI agents.
+
+**CRITICAL ENFORCEMENT**:
+- These principles are MANDATORY and must be respected in ALL chats and ALL projects
+- They are automatically distributed to all projects via the Control Center sync process
+- The `.cursorrules` file in the project root explicitly requires you to read these principles
+- Violating these principles is not acceptable - they ensure code quality and maintainability
+
+## Code Quality Standards
+
+### 1. Clarity and Readability
+- **Write self-documenting code**: Use descriptive variable and function names
+- **Prefer explicit over implicit**: Make intentions clear through code structure
+- **Keep functions focused**: Each function should do one thing well
+- **Use meaningful comments**: Explain "why" not "what" - code should explain itself
+- **Avoid magic numbers**: Use named constants or configuration values
+
+### 2. Consistency
+- **Follow project conventions**: Adhere to existing code style and patterns
+- **Use consistent naming**: Follow language-specific conventions (camelCase, snake_case, etc.)
+- **Maintain formatting**: Use project's formatter/linter configuration
+- **Consistent error handling**: Use the same patterns across the codebase
+
+### 3. Maintainability
+- **DRY (Don't Repeat Yourself)**: Extract common logic into reusable functions
+- **Single Responsibility**: Each module/class should have one clear purpose
+- **Separation of Concerns**: Keep business logic, data access, and presentation separate
+- **Avoid premature optimization**: Write clear code first, optimize when needed
+
+### 4. Error Handling
+- **Fail fast**: Validate inputs early and fail with clear messages
+- **Handle errors explicitly**: Don't silently swallow exceptions
+- **Provide context**: Error messages should help diagnose the issue
+- **Use appropriate error types**: Distinguish between recoverable and fatal errors
+
+## Code Organization
+
+### 5. File and Module Structure
+- **Logical grouping**: Organize files by feature or domain, not by type
+- **Clear module boundaries**: Each module should have a clear public API
+- **Avoid deep nesting**: Keep directory structures shallow and navigable
+- **Co-locate related code**: Keep related files close together
+
+### 6. Dependencies
+- **Minimize dependencies**: Only add dependencies when necessary
+- **Explicit imports**: Prefer explicit imports over wildcard imports
+- **Avoid circular dependencies**: Structure code to prevent circular references
+- **Version pinning**: Use exact versions or version ranges appropriately
+
+## Testing and Quality Assurance
+
+### 7. Testing Principles
+- **Write testable code**: Design code with testing in mind
+- **Test behavior, not implementation**: Focus on what code does, not how
+- **Maintain test coverage**: Aim for meaningful coverage of critical paths
+- **Keep tests simple**: Each test should verify one behavior
+- **Verify fixes with tests**: When fixing bugs, create and run tests to prove the fix works
+- **Test in a loop until fixed**: If a problem is reported, write a test that reproduces it, then iterate until the test passes
+- **Never claim fixed without proof**: Only say something is fixed after tests pass and verification is complete
+- **Automated verification**: Prefer automated tests over manual verification whenever possible
+
+### 8. Code Review Standards
+- **Review for correctness**: Does the code do what it's supposed to?
+- **Review for maintainability**: Will future developers understand this?
+- **Review for security**: Are there potential security vulnerabilities?
+- **Review for performance**: Are there obvious performance issues?
+
+## Security and Safety
+
+### 9. Security Best Practices
+- **Validate all inputs**: Never trust user input or external data
+- **Use parameterized queries**: Prevent SQL injection and similar attacks
+- **Sanitize outputs**: Prevent XSS and injection attacks
+- **Keep dependencies updated**: Regularly update to patch vulnerabilities
+- **Never commit secrets**: Use environment variables or secure config management
+
+### 10. Type Safety
+- **Use strong typing**: Leverage TypeScript, type hints, or similar
+- **Avoid `any` types**: Use specific types or generics
+- **Validate at boundaries**: Check types at API boundaries
+- **Use type guards**: Verify types before using values
+
+## Performance Considerations
+
+### 11. Efficiency
+- **Profile before optimizing**: Measure first, optimize based on data
+- **Avoid premature optimization**: Write clear code first
+- **Use appropriate data structures**: Choose the right tool for the job
+- **Minimize allocations**: Reuse objects when possible (but don't over-optimize)
+
+### 12. Resource Management
+- **Clean up resources**: Close files, connections, and handles
+- **Use async/await properly**: Handle promises and async operations correctly
+- **Avoid memory leaks**: Be mindful of closures and event listeners
+- **Limit resource usage**: Don't consume excessive memory or CPU
+
+## Documentation and Communication
+
+### 13. Code Documentation
+- **Document public APIs**: All public functions, classes, and modules should be documented
+- **Keep docs up to date**: Update documentation when code changes
+- **Use clear examples**: Show how to use the code, not just what it does
+- **Document assumptions**: Note any non-obvious assumptions or constraints
+
+### 14. Commit Messages
+- **Write clear commit messages**: Explain what changed and why
+- **Use conventional commits**: Follow project's commit message format
+- **Keep commits focused**: One logical change per commit
+- **Reference issues**: Link commits to related issues or tickets
+
+## AI Agent Guidelines
+
+### 14a. Response Confirmation (MANDATORY)
+- **ALL agent responses MUST end with**: "In accordance with coding principles and agreed communications I have..." followed by what you actually did to practice them
+- **Show proof**: List specific actions you took that demonstrate following the principles (e.g., "executed commands directly", "read files instead of asking", "provided recommendations", "verified the fix", "used simple language")
+- **This is proof** that the agent has followed coding principles and communication rules through demonstrated actions
+- **Applies to ALL responses**: Every single response, in all projects, must include this confirmation
+- **No exceptions**: This confirmation is mandatory for every agent interaction
+- **Purpose**: Provides proof that agents are following all principles and rules by demonstrating specific actions
+
+### 15. When Writing Code
+- **Read existing code first**: Understand patterns before adding new code
+- **Follow project conventions**: Match the style and structure of existing code
+- **Verify assumptions**: Check files, configurations, and dependencies
+- **Test your changes**: Run tests and verify functionality
+
+### 16. When Refactoring
+- **Refactor incrementally**: Make small, safe changes
+- **Maintain functionality**: Ensure behavior doesn't change
+- **Update tests**: Keep tests in sync with refactored code
+- **Document significant changes**: Note why refactoring was needed
+
+### 17. When Debugging
+- **Reproduce the issue**: Understand the problem before fixing
+- **Read error messages**: Actual errors provide valuable information
+- **Check logs**: Use `.dev.log` and other log files for context
+- **Find acceptance criteria**: What does "fixed" mean? What should work?
+- **Define verification**: How will you prove it's fixed?
+- **Verify the fix**: Test and prove the issue is actually resolved - don't stop until verified
+- **Show proof**: Demonstrate the fix works before claiming success
+- **Test in a loop until fixed**: Write a test that reproduces the bug, fix it, run the test, repeat until test passes
+- **Don't claim fixed without proof**: Only declare something fixed after automated tests pass or manual verification is complete
+- **Create regression tests**: Add tests to prevent the same bug from returning
+
+### 18. Command Execution
+- **Execute commands directly**: Never ask users to run terminal commands - run them yourself
+- **Use available tools**: Leverage terminal execution tools to run commands directly
+- **If impossible to run**: Provide super-clear instructions with:
+  - Copy-paste ready code blocks (markdown format with language tags)
+  - Clickable URLs (proper markdown links: `[text](url)`)
+  - Step-by-step instructions with exact commands
+  - Visual indicators (✓, ✗, →) for clarity
+  - Expected output examples
+- **Never delegate execution**: Take responsibility for running commands unless physically impossible
+
+### 19. Communication with Non-Developers
+- **Simple language**: User may not be a developer - use clear, plain language
+- **Keep it short**: Be concise - avoid lengthy technical explanations
+- **Always recommend**: Provide actionable recommendations, not just information
+- **When stuck**: Recommend researching external implementations with similar issues
+  - Suggest specific search terms, examples, or similar projects
+  - Point to documentation or tutorials that address the issue
+  - Reference how others solved similar problems
+
+### 19a. Issue Resolution Process
+- **When user reports an issue**:
+  1. **Find acceptance criteria**: What does "fixed" mean? What should work?
+  2. **Define verification method**: How will you prove it's fixed? (tests, output checks, behavior verification)
+  3. **Fix the issue**: Implement the solution
+  4. **Verify before claiming success**: Test and prove it works - show proof
+  5. **Don't stop until verified**: Keep working until the issue is actually resolved and proven
+- **Show proof of fix**: Run tests, show output, demonstrate the fix works
+- **If verification fails**: Try a different approach - don't give up until it's actually working
+- **Never mark as fixed without verification**: Always test and prove the fix works first
+
+## Project-Specific Considerations
+
+### 20. Technology Stack
+- **Follow framework conventions**: Use React, Vue, Express, etc. as intended
+- **Leverage language features**: Use modern language features appropriately
+- **Respect build tools**: Work with the project's build system
+- **Use project utilities**: Leverage existing helper functions and utilities
+
+### 21. Integration Points
+- **API design**: Design APIs to be clear, consistent, and versioned
+- **Database interactions**: Use appropriate patterns (ORM, query builders, etc.)
+- **External services**: Handle failures gracefully, use retries and timeouts
+- **Configuration**: Use environment variables and config files appropriately
+
+## Continuous Improvement
+
+### 22. Code Evolution
+- **Refactor regularly**: Don't let technical debt accumulate
+- **Update dependencies**: Keep dependencies current (with testing)
+- **Learn from mistakes**: Document lessons learned
+- **Share knowledge**: Help team members understand patterns and decisions
+
+## Integration with Other Rules
+
+This Coding Principles file works in conjunction with:
+- `agent-comm.mdc` - Communication and workflow rules
+- `runtime.mdc` - Runtime and logging rules
+- `launch.mdc` - Launch command rules
+- `release.mdc` - Release command rules
+- `ship.mdc` - Ship It command rules
+
+**Important**: These principles should guide all code changes, whether made by developers or AI agents. When in doubt, prioritize clarity, maintainability, and correctness.
+
+## Version and Updates
+
+This is the master Coding Principles file. It is synced to all projects via the Control Center.
+
+### For Individual Projects
+When principles are updated, sync a specific project using:
+```bash
+ccc sync-project --path . --services web,api
+```
+
+### For All Projects
+To sync principles to ALL projects at once:
+```bash
+ccc sync-all-projects --services web,api
+```
+
+### Automatic Distribution
+- **New projects**: Automatically get latest principles when created or scanned
+- **Existing projects**: Get updated principles when `ccc scan-projects` is run (unless `--no-sync` is used)
+- **Version tracking**: The version of rules is tracked in `.cursor/control-center.json` in each project
+- **Respect in all chats**: These principles apply to ALL agent interactions in ALL projects - they are mandatory
+
+### When Principles Are Updated in Control Center
+1. Rules version is bumped in `templates/rules-version.json`
+2. **Run `ccc sync-all-projects`** to distribute to all existing projects
+3. **The command reports**: How many projects were updated (e.g., "Rules updated: 5 project(s)")
+4. New projects will automatically get the latest principles
+5. Agents in all chats will respect the updated principles once synced
+
+### Agency Principle: Automatic Principle Distribution
+**CRITICAL**: Whenever coding principles or agent-comm rules are updated in Control Center:
+- **MUST sync to all projects**: Run `ccc sync-all-projects` to apply updates everywhere
+- **Report results**: The command shows how many projects received the updates
+- **One update applies everywhere**: No need to update each project individually
+- **Automatic propagation**: Principle updates should immediately propagate to all projects

@@ -66,3 +66,6 @@ You'll see in console:
 **Everything is implemented correctly!** The app is working perfectly. You just need a fresh token with the streaming scope. The green banner will guide you. Once you re-authenticate, the SDK will automatically start working and eliminate rate limiting! 🎉
 
 
+
+
+

@@ -1,0 +1,73 @@
+# Runtime and Logging Rules
+
+## Log Policy
+
+When developing and debugging, follow these standardized log practices:
+
+1. **Dev Command Output**: All development commands (dev:web, dev:api, dev:all) should pipe their output to a fixed log file: `.dev.log`
+   - This ensures consistent log location across all projects
+   - Example: `npm run dev:web > .dev.log 2>&1 &`
+
+2. **Diagnose Command**: Every project must have a `diagnose` script in package.json that:
+   - Prints the last N lines (default 50) of `.dev.log`
+   - Shows relevant environment information (Node version, port assignments, etc.)
+   - Displays current process status
+
+3. **Agent Behavior**: When debugging or investigating issues:
+   - **DO NOT** ask the user to manually "tail logs" or "check the terminal"
+   - **DO** ask the user to run the `diagnose` command and paste the output
+   - This provides structured, consistent debugging information
+
+## Example Diagnose Script
+
+The diagnose script should output:
+- Last 50 lines of `.dev.log`
+- Current port assignments (from `.cursor/ports.json`)
+- Node/npm versions
+- Git status (if applicable)
+- Any error indicators from the logs
+
+## Reading Logs
+
+When you need to see logs:
+1. Ask the user to run: `npm run diagnose`
+2. Analyze the output they provide
+3. Use the structured information to identify issues
+
+Never ask users to manually tail or grep log files.
+
+## Verifying Services Are Running
+
+**CRITICAL**: When you start a service (via launch, dev:web, dev:api, etc.):
+1. **ALWAYS** check the `.dev.log` file on disk to verify the service actually started
+2. Look for startup success messages in the log
+3. Check that the log file exists and was recently updated
+4. Verify the service is listening on the expected port by checking log output
+5. If the log shows errors or no startup confirmation, the service did NOT start successfully
+6. Do not assume a service is running - verify it by reading the actual log file
+
+Example verification after starting a service:
+- Read `.dev.log` and look for: "Server running", "Listening on", "started", or similar success messages
+- Check log timestamp is recent (within last few seconds)
+- If log is empty or shows errors, the service failed to start
+
+## Reporting Running Ports to Control Center
+
+After verifying services are running, you MUST report the actual ports to the Control Center:
+
+1. **Extract ports from logs or process info**: Determine which ports each service is actually using
+2. **Report to Control Center**: Run `ccc report-ports --path . --ports web:5100,api:8000` (adjust ports as needed)
+   - This updates both the project's `.cursor/ports.json` and the Control Center registry
+   - Use the actual ports your services are running on, not just allocated ports
+3. **Alternative**: If ports are already in `.cursor/ports.json`, use `ccc report-ports --path . --fetch` to sync them
+
+**When to report ports:**
+- After starting services and verifying they're running
+- When ports change (different from allocated ports)
+- Before asking the Control Center about port assignments
+
+**Example flow:**
+1. Start services: `npm run dev:all`
+2. Verify in `.dev.log`: Check that services started on specific ports
+3. Report ports: `ccc report-ports --path . --ports web:5100,api:8000`
+4. Control Center now knows the actual running ports

@@ -1,0 +1,48 @@
+# Release Command Rules
+
+## Release Command
+
+**To release a project, simply say: "release it" or "release" in the chat.**
+
+The agent will recognize these phrases and follow the release procedure. You can also use `/release` if you prefer, but it's not required - natural language works just as well.
+
+When the user says "release it", "release", or uses `/release`:
+
+1. **Call Control Center**:
+   - Execute: `ccc release-project --path <project-path>`
+   - This handles all GitHub operations non-interactively
+
+2. **What Happens**:
+   - Control Center ensures git repo exists (init if needed)
+   - Creates GitHub repository if it doesn't exist
+   - Sets up remote origin
+   - Pushes code to GitHub
+   - Returns repository URL
+
+3. **User Experience**:
+   - Show simple confirmation: "Done. Your project is available at: <repo-url>"
+   - No authentication prompts
+   - No manual configuration needed
+
+4. **Error Handling**:
+   - If GitHub auth fails: "GitHub authentication invalid. Please reconfigure Control Center GitHub credentials."
+   - If repo creation fails: Show the error from Control Center
+   - Never prompt for tokens or credentials
+
+5. **After Release**:
+   - Project registry is updated with repo URL
+   - `.cursor/control-center.json` is updated
+   - Future "ship it" commands will push to this repository
+
+## Non-Interactive Flow
+
+The entire release process must be non-interactive:
+- Uses centralized GitHub authentication from Control Center
+- Uses centralized GitHub configuration (owner, visibility, branch)
+- No per-project authentication or configuration needed
+
+### Important Notes:
+- **Natural language works perfectly**: Just say "release it" or "release" - no need to create custom commands
+- Always use the Control Center command: `ccc release-project --path <project-path>`
+- Never prompt for credentials or tokens
+- Project registry is automatically updated after successful release

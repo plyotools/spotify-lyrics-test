@@ -1,0 +1,38 @@
+# Ship Command Rules
+
+## "Ship It" Behavior
+
+When the user says "ship it" or uses `/ship`:
+
+1. **Pre-ship Checks**:
+   - Ensure project is synced with Control Center (rules and ports up to date)
+   - Run tests if test script exists
+   - Build project if build script exists
+
+2. **Git Operations**:
+   - Check git status
+   - Stage all changes
+   - Create commit with appropriate message (or ask user for message)
+   - Push to existing remote (if configured)
+
+3. **No Repository Creation**:
+   - "Ship it" does NOT create new GitHub repositories
+   - It only pushes to existing remotes
+   - Use "release it" for repository creation
+
+4. **Standard Scripts**:
+   - Use `npm run ship` if it exists (may include test + build + push)
+   - Otherwise, perform git operations directly
+
+5. **Error Handling**:
+   - If remote doesn't exist, inform user they need to "release it" first
+   - If authentication fails, inform user to check Control Center GitHub config
+
+## Ship Script Template
+
+The Control Center provides a standard `ship` script that:
+- Runs tests (if available)
+- Builds the project (if build script exists)
+- Commits and pushes changes
+
+Projects can customize this script as needed.

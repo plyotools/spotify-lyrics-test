@@ -1,0 +1,126 @@
+# Launch Command Rules
+
+## Launch Command
+
+**To launch a project, simply say: "launch it" or "launch" in the chat.**
+
+The agent will recognize these phrases and follow the launch procedure. You can also use `/launch` if you prefer, but it's not required - natural language works just as well.
+
+**IMPORTANT**: This project has a `launch.md` file in the root directory with explicit step-by-step instructions. **ALWAYS read and follow `launch.md`** - it contains the most up-to-date and project-specific launch procedure.
+
+**CRITICAL**: `launch.md` requires you to **SHOW PROOF** of each step. Don't just say "done" - show the actual output, log lines, or evidence that each step completed successfully.
+
+When the user says "launch it", "launch", or uses `/launch`, you MUST:
+1. **First, read `launch.md` in the project root** (if it exists)
+2. Follow the steps in `launch.md` exactly
+3. If `launch.md` doesn't exist, follow these steps in order:
+
+### Step 1: Sync with Control Center
+- **ALWAYS** call: `ccc sync-project --path . --services web,api` (or adjust services as needed)
+- This ensures rules, templates, and ports are up to date
+- **IMPORTANT**: The sync process automatically checks if allocated ports are actually available on the system
+- If a port conflict is detected (port already in use), sync will automatically find the next available port
+- Wait for sync to complete before proceeding
+- If you see port conflicts, the sync will handle them automatically by allocating different ports
+
+### Step 2: Start Services
+- Read port assignments from `.cursor/ports.json` (created by sync)
+- Start services using scripts from package.json:
+  - If both web and api needed: `npm run dev:all > .dev.log 2>&1 &`
+  - If only web: `npm run dev:web > .dev.log 2>&1 &`
+  - If only api: `npm run dev:api > .dev.log 2>&1 &`
+- **CRITICAL**: Run in background (use `&`) and redirect output to `.dev.log`
+- Never hardcode ports - always use ports from `.cursor/ports.json`
+
+### Step 3: Verify Services Started
+- **ALWAYS** check `.dev.log` on disk to verify services actually started
+- Wait 2-3 seconds after starting services
+- Read `.dev.log` and look for success indicators:
+  - "Server running on port X"
+  - "Listening on"
+  - "started"
+  - "ready"
+- **CRITICAL**: Extract the ACTUAL ports from the log (e.g., if log says "Server running on port 5173", use 5173)
+- The actual ports may differ from allocated ports in `.cursor/ports.json`
+- If log shows errors or is empty, the service did NOT start - report to user and stop
+- Do not proceed if services didn't start successfully
+
+### Step 4: Report Actual Ports (REQUIRED)
+- **BEFORE calling launch-project**, extract the ACTUAL ports from `.dev.log`
+- If actual ports differ from `.cursor/ports.json`, report the ACTUAL ports:
+  - Run: `ccc report-ports --path . --ports web:5173,api:3002` (use actual ports from log)
+  - This ensures CCC knows the real running ports, not just allocated ones
+- If ports match `.cursor/ports.json`, you can skip this step (launch-project will report them)
+
+### Step 5: Launch and Open Browser (REQUIRED)
+- **ALWAYS** call: `ccc launch-project --path . --no-sync`
+  - Use `--no-sync` because we already synced in Step 1
+  - This command will:
+    1. Report ports from `.cursor/ports.json` to Control Center
+    2. Verify the service is responding on the port
+    3. Open the browser automatically (cross-platform)
+    4. Report success with the URL
+- **NEVER** skip opening the browser
+- **NEVER** just tell the user the URL - you MUST open it automatically
+
+### Step 6: Confirm Port Reporting in Response (REQUIRED - DO NOT SKIP)
+
+**CRITICAL**: Your response MUST end with a Control Center confirmation. Use this exact format:
+
+After reporting the launch success, ALWAYS add:
+
+```
+---
+
+✓ **Control Center Status:**
+Ports have been reported to Control Center:
+- Frontend (web): http://localhost:5173
+- Backend API (api): http://localhost:3002
+
+These ports are now visible in the Control Center dashboard.
+```
+
+**NEVER** skip this section - it's a required part of every launch response.
+
+If port reporting failed, state:
+```
+⚠️ **Control Center Status:**
+Ports may not have been reported to Control Center. 
+Please check the CCC dashboard or run: ccc report-ports --path . --ports web:5173,api:3002
+```
+
+### Complete Flow Example:
+```
+1. ccc sync-project --path . --services web,api
+2. npm run dev:all > .dev.log 2>&1 &
+3. Wait 3 seconds
+4. Check .dev.log for "Server running on port 5173" (extract actual ports)
+5. If ports differ from .cursor/ports.json: ccc report-ports --path . --ports web:5173,api:3002
+6. ccc launch-project --path . --no-sync
+7. In your response, ALWAYS end with:
+   ---
+   ✓ **Control Center Status:**
+   Ports have been reported to Control Center:
+   - Frontend (web): http://localhost:5173
+   - Backend API (api): http://localhost:3002
+   These ports are now visible in the Control Center dashboard.
+```
+
+### Important Notes:
+- **Natural language works perfectly**: Just say "launch it" or "launch" - no need to create custom commands
+- All steps are REQUIRED - do not skip any
+- Always verify services started before trying to open browser
+- The browser MUST open automatically - never ask the user to open it manually
+- **CRITICAL**: Your response MUST include confirmation that ports were reported to Control Center
+- **NEVER** end your response without mentioning Control Center port reporting status
+- If any step fails, report the error and stop - do not continue
+
+## Standard Scripts
+
+Projects synced with Control Center will have these scripts:
+- `dev:web` - Start web/frontend server
+- `dev:api` - Start API/backend server  
+- `dev:all` - Start both services
+- `diagnose` - Show logs and status
+
+Use these scripts rather than creating new ones.

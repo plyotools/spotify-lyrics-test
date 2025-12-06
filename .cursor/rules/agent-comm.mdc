@@ -1,0 +1,306 @@
+# Agent Communication Rules
+
+⚠️ **MANDATORY RULES - YOU MUST READ AND FOLLOW THESE** ⚠️
+
+This document defines the master communication rules for all AI agents working in projects managed by the Cursor Control Center. These rules apply across all projects and should be followed consistently.
+
+**CRITICAL ENFORCEMENT**:
+- These rules are MANDATORY and must be respected in ALL chats and ALL projects
+- They are automatically distributed to all projects via the Control Center sync process
+- The `.cursorrules` file in the project root explicitly requires you to read these rules
+- Violating these rules is not acceptable - they ensure consistency and quality
+
+## "Check Rules" Command
+
+When a user starts a dialogue with **"check rules"** (or variations like "check rules", "show rules", "what are the rules", etc.), the agent MUST:
+
+1. **Read this file** (or the synced version at `.cursor/rules/agent-comm.mdc` in the project)
+2. **Check rules version**: Read `.cursor/control-center.json` and compare with master version
+3. **If rules are outdated**: Inform user that rules need updating and offer to sync
+4. **Provide a summary** that includes:
+   - The main categories of rules (listed below)
+   - Key principles the agent should follow
+   - Current rules version and sync status
+   - Any project-specific context if available
+   - A confirmation that the agent understands and will follow these rules
+
+5. **Format the response** clearly and concisely, using headings or bullets for readability
+
+## Rules Distribution and Updates
+
+**CRITICAL**: These rules are managed by the Cursor Control Center and must be respected in ALL chats and projects.
+
+### Agency Principle: Automatic Rule Distribution
+- **When coding principles or agent-comm rules are updated**: They MUST be automatically applied to ALL projects
+- **Always sync rules to all projects**: After updating rules in Control Center, run `ccc sync-all-projects` to distribute
+- **Report distribution results**: The sync command reports how many projects were updated
+- **Automatic propagation**: Rules updates in Control Center should immediately propagate to all projects
+- **No manual per-project updates needed**: One update in Control Center applies everywhere
+
+### Distribution Process
+- **Rules are synced automatically** when projects are scanned or synced
+- **Rules version is tracked** in `.cursor/control-center.json` in each project
+- **When rules are updated in Control Center**, run `ccc sync-all-projects` to distribute to all projects
+- **The command reports**: Total projects, successfully synced, rules updated count, and any failures
+- **New projects automatically get latest rules** when created or scanned
+- **Agents MUST respect these rules** - they are not optional or suggestions
+- **If rules seem outdated**: Check `.cursor/control-center.json` and sync if needed
+
+## Core Communication Principles
+
+### 0. Response Confirmation (MANDATORY)
+- **ALL agent responses MUST end with**: "In accordance with coding principles and agreed communications I have..." followed by what you actually did to practice them
+- **Show proof**: List specific actions you took that demonstrate following the principles (e.g., "executed commands directly", "read files instead of asking", "provided recommendations", "verified the fix")
+- **This is proof** that the agent has followed the rules and principles
+- **Applies to ALL responses**: Every single response, in all projects, must include this confirmation
+- **No exceptions**: This confirmation is mandatory for every agent interaction
+- **Purpose**: Provides proof that agents are following coding principles and communication rules by demonstrating specific actions
+
+### 1. Command Recognition
+- **Recognize both natural language and slash commands** for critical operations:
+  - "launch it", "launch", or `/launch` - all trigger the launch procedure
+  - "release it", "release", or `/release` - all trigger the release procedure
+- Natural language is the simplest and most natural way to invoke commands
+- Slash commands work too, but users don't need to create custom commands
+- When user uses any of these formats, follow the exact procedure defined in the corresponding rule file
+
+### 1. Clarity and Directness
+- **User is not a developer**: Communicate in simple, clear language - avoid technical jargon
+- **Keep it short**: Be concise and to the point - avoid lengthy explanations
+- **Provide recommendations**: Always include actionable recommendations, not just information
+- **Use simple language**: Explain technical concepts in plain terms
+- Use structured responses when presenting information
+- Break down complex tasks into understandable steps
+- **If stuck**: Recommend researching external implementations with similar issues - suggest specific search terms or examples
+
+### 2. Proactive Problem Solving
+- Anticipate potential issues and address them proactively
+- **Always provide recommendations**: Suggest solutions, not just identify problems
+- **If stuck, recommend research**: Suggest researching external implementations with similar issues
+- Offer alternatives when the first approach doesn't work
+- Verify assumptions by checking files, logs, or configurations
+- **Keep recommendations simple**: User is not a developer - explain in plain terms
+
+### 2a. Issue Resolution Process
+- **When user reports an issue**: 
+  1. **Find acceptance criteria**: Understand what "fixed" means - what should work?
+  2. **Define verification method**: How will you prove it's actually fixed?
+  3. **Fix the issue**: Implement the solution
+  4. **Verify the fix**: Test and prove it works before saying it's done
+  5. **Don't stop until verified**: Keep working until the issue is actually resolved and proven
+- **Never say "fixed" without verification**: Always test and prove the fix works
+- **Show proof**: Demonstrate that the issue is resolved (run tests, show output, verify behavior)
+- **If verification fails**: Try again - don't give up until it's actually working
+
+### 3. File-Based Verification
+- **Never assume** services are running - verify by reading log files
+- **Never assume** ports are correct - read from `.cursor/ports.json`
+- **Never assume** configurations - read actual files
+- Always verify by reading files on disk, especially:
+  - `.dev.log` for service status
+  - `.cursor/ports.json` for port assignments
+  - `.cursor/control-center.json` for project metadata
+  - `.ccc-test.log` for self-test results and bugs (in Control Center root)
+
+### 4. User Experience
+- Minimize user interaction required
+- Use centralized configurations (Control Center) instead of per-project prompts
+- Never ask for information that can be read from files
+- Provide clear confirmations with actionable next steps
+- Show progress indicators for long-running operations
+
+### 4a. Execute Commands Directly
+- **NEVER ask users to run terminal commands** - execute them yourself using available tools
+- **Run commands directly** unless it's physically impossible (e.g., requires user authentication, browser interaction, or system-level permissions)
+- **If impossible to run**: Provide super-clear instructions with:
+  - Copy-paste ready code blocks (use markdown code blocks with language tags)
+  - Clickable URLs (format as proper markdown links: `[text](url)`)
+  - Step-by-step instructions with exact commands
+  - Visual indicators (✓, ✗, →) for clarity
+  - Expected output examples
+- **Never say "run this command"** - either run it yourself or provide it in a copy-paste format with full context
+
+### 5. Error Handling
+- When errors occur, read actual error messages from logs/files
+- Don't guess what went wrong - investigate by reading error output
+- **Explain errors simply**: User is not a developer - use plain language
+- Provide actionable error messages with clear recommendations
+- Suggest specific commands to diagnose issues (e.g., `npm run diagnose`)
+- **If stuck**: Recommend researching how others solved similar issues - suggest specific examples or search terms
+
+### 5a. Issue Resolution and Verification
+- **When user reports an issue**:
+  1. **Identify acceptance criteria**: What does "fixed" look like? What should work?
+  2. **Define verification steps**: How will you prove it's fixed? (tests, manual verification, output checks)
+  3. **Fix the issue**: Implement the solution
+  4. **Verify before claiming success**: Test and prove it works - don't say "fixed" until verified
+  5. **Don't stop until verified**: Keep working until the issue is actually resolved and proven
+- **Show proof of fix**: Run tests, show output, demonstrate the fix works
+- **If verification fails**: Try a different approach - don't give up until it's actually working
+- **Never mark as fixed without verification**: Always test and prove the fix works
+
+## Critical Workflows
+
+### Launch Command Flow
+**Say "launch it" or "launch" to trigger the launch procedure:**
+
+**FIRST**: Check if the project has a `launch.md` file in the root directory. If it exists, **read it and follow its instructions exactly**. The `launch.md` file contains the most explicit and up-to-date launch procedure.
+
+**CRITICAL**: `launch.md` requires you to **SHOW PROOF** of each step. You must:
+- Show actual command output (don't just say "synced")
+- Show relevant log lines from `.dev.log` (don't just say "services started")
+- Show port reporting confirmation (don't just say "ports reported")
+- Show browser opening confirmation (don't just say "browser opened")
+- Be transparent about what actually happened, not just what should have happened
+
+If `launch.md` doesn't exist, follow these steps:
+1. Sync project: `ccc sync-project --path . --services web,api`
+   - **Note**: Sync automatically checks port availability and avoids conflicts with running services
+   - If a port is already in use, sync will allocate the next available port automatically
+2. Read ports from `.cursor/ports.json` (never hardcode or ask user)
+3. Start services using standard scripts: `dev:web`, `dev:api`, or `dev:all`
+4. **ALWAYS verify** by reading `.dev.log` file on disk
+5. Extract ACTUAL ports from log (may differ from allocated ports)
+6. Report actual ports: `ccc report-ports --path . --ports web:5173,api:3002` (use actual ports)
+7. Call `ccc launch-project --path . --no-sync` to verify and open browser
+8. **REQUIRED**: In your response, confirm: "✓ Ports have been reported to Control Center and are visible in the CCC dashboard"
+
+### Debugging Flow
+1. **Never** ask users to manually tail logs or check terminal
+2. **Run commands yourself**: Execute `npm run diagnose` yourself and analyze the output
+3. If you cannot run the command, provide it in a copy-paste code block with full context
+4. Analyze the structured output provided
+5. Read `.dev.log` directly if needed for verification
+
+### Self-Test and Bug Fixing
+- **For Control Center itself**: Run `ccc self-test` to check system health
+- **Test log location**: `.ccc-test.log` in the Control Center root directory
+- **When bugs are found**: Read `.ccc-test.log` to see test failures and errors
+- **Fix bugs automatically**: Agents should read the test log, identify issues, and fix them without asking the user
+- **Test log can be cleared**: The log file can be emptied continuously, but agents should check it regularly
+- **Self-healing**: The system is designed to self-diagnose and agents should proactively fix issues found in test logs
+
+### Release Command Flow
+**Say "release it" or "release" to trigger the release procedure:**
+1. Call Control Center: `ccc release-project --path .`
+2. Control Center handles all GitHub operations
+3. Show confirmation with repo URL
+4. Never prompt for authentication (use centralized config)
+
+## What NOT to Ask Users
+
+Agents should **never** ask users to:
+- **Run terminal commands** (execute them yourself or provide copy-paste code blocks)
+- Manually tail logs or check terminal output
+- Provide port numbers (read from `.cursor/ports.json`)
+- Authenticate per-project (use Control Center credentials)
+- Configure GitHub per-project (use Control Center config)
+- Manually verify if services are running (read `.dev.log`)
+- Copy/paste command output (read files directly instead)
+
+## What Agents MUST Do
+
+Agents must **always**:
+- **End every response with**: "In accordance with coding principles and agreed communications I have..." followed by what you actually did to practice them (MANDATORY)
+- **Show proof**: List specific actions demonstrating you followed the principles
+- **Execute terminal commands directly** using available tools
+- Verify services started by reading `.dev.log` on disk
+- Read ports from `.cursor/ports.json` instead of asking
+- Check file timestamps to ensure information is current
+- Use centralized Control Center commands for port/repo management
+- Report actual running ports after starting services
+- Provide file-based verification of any assumptions
+- **If a command cannot be run**: Provide it in a copy-paste code block with full context, clickable URLs, and clear step-by-step instructions
+
+## Communication Standards
+
+### Response Format (MANDATORY)
+- **Every response MUST end with**: "In accordance with coding principles and agreed communications I have..." followed by what you actually did to practice them
+- **Show proof**: List specific actions demonstrating you followed the principles (e.g., "executed commands directly", "read files instead of asking", "provided recommendations", "verified the fix")
+- **This is proof** that rules were followed through demonstrated actions
+- **Applies universally**: All projects, all conversations, all responses
+- **No exceptions**: This confirmation is required for every agent response
+
+### When Providing Summaries
+- **Keep it simple and short**: User is not a developer - use plain language
+- Use clear headings or bullet points
+- Group related information together
+- Highlight critical information
+- Include file paths when referencing specific locations
+- **Always include recommendations**: What should the user do next?
+
+### When Reporting Status
+- **Simple language**: Explain what happened in plain terms
+- Be specific about what was checked (e.g., "Verified in `.dev.log` file")
+- Include timestamps or version info when relevant
+- Show actual values (ports, URLs) rather than just saying "configured"
+- **Provide recommendations**: What's the next step?
+
+### When Errors Occur
+- **Simple explanation**: Explain the error in plain language, not technical jargon
+- Quote the actual error message from logs
+- Identify the specific file or command that failed
+- **Run diagnostic commands yourself** to investigate
+- If you cannot run a command, provide it in a copy-paste code block with full context
+- **Recommend research**: If stuck, suggest researching external implementations with similar issues
+- Provide the exact steps to reproduce (if needed)
+- Suggest specific fixes with executable commands or copy-paste code blocks
+- **Keep it short**: Don't overwhelm with technical details
+
+### When User Reports an Issue
+- **Find acceptance criteria**: What does "fixed" mean? What should work when it's done?
+- **Define verification method**: How will you prove it's fixed? (run tests, check output, verify behavior)
+- **Fix the issue**: Implement the solution
+- **Verify before claiming success**: Test and prove it works - show proof
+- **Don't stop until verified**: Keep working until the issue is actually resolved and proven
+- **Show proof**: Demonstrate the fix works (run tests, show output, verify the behavior)
+- **If verification fails**: Try again with a different approach - don't give up
+- **Never say "fixed" without verification**: Always test and prove the fix works first
+
+## Integration with Other Rules
+
+This Agent Comm Rules file works in conjunction with:
+- `runtime.mdc` - Runtime and logging rules
+- `launch.mdc` - `/launch` command rules (use `/launch` for explicit launches)
+- `release.mdc` - `/release` command rules (use `/release` for explicit releases)
+- `ship.mdc` - Ship It command rules
+
+**Important**: When users say "launch it", "release it", or use slash commands, follow the exact procedure in the corresponding rule file. Natural language is the simplest way - no need to create custom commands.
+
+Agents should follow all applicable rule files, with this communication file providing the foundational interaction patterns.
+
+## Version and Updates
+
+This is the master Agent Comm Rules file. It is synced to all projects via the Control Center.
+
+### For Individual Projects
+When rules are updated, sync a specific project using:
+```bash
+ccc sync-project --path . --services web,api
+```
+
+### For All Projects
+To sync rules to ALL projects at once:
+```bash
+ccc sync-all-projects --services web,api
+```
+
+### Automatic Distribution
+- **New projects**: Automatically get latest rules when created or scanned
+- **Existing projects**: Get updated rules when `ccc scan-projects` is run (unless `--no-sync` is used)
+- **Version tracking**: The version of rules is tracked in `.cursor/control-center.json` in each project
+- **Respect in all chats**: These rules apply to ALL agent interactions in ALL projects - they are mandatory
+
+### When Rules Are Updated in Control Center
+1. Rules version is bumped in `templates/rules-version.json`
+2. **Run `ccc sync-all-projects`** to distribute to all existing projects
+3. **The command reports**: How many projects were updated (e.g., "Rules updated: 5 project(s)")
+4. New projects will automatically get the latest rules
+5. Agents in all chats will respect the updated rules once synced
+
+### Agency Principle: Automatic Rule Distribution
+**CRITICAL**: Whenever coding principles or agent-comm rules are updated in Control Center:
+- **MUST sync to all projects**: Run `ccc sync-all-projects` to apply updates everywhere
+- **Report results**: The command shows how many projects received the updates
+- **One update applies everywhere**: No need to update each project individually
+- **Automatic propagation**: Rules updates should immediately propagate to all projects
