@@ -10,6 +10,14 @@ This document defines the core coding principles and standards for all projects 
 - The `.cursorrules` file in the project root explicitly requires you to read these principles
 - Violating these principles is not acceptable - they ensure code quality and maintainability
 
+## "CP" Shorthand Reminder
+- **When user types "CP" anywhere**: This is a reminder to follow Coding Principles - user can use it at any point in the conversation
+- **Corrective reminder**: If user writes "CP", they may believe you're not following principles - treat it as a signal to review and correct
+- **Immediately review**: Check your work against all principles in this file
+- **Apply standards**: Ensure code quality, maintainability, security, and best practices
+- **No exceptions**: "CP" means you must verify you're following all coding principles and adjust if needed
+- **Use anytime**: User can write "CP" whenever they want to remind you of principles - it works anywhere in the conversation
+
 ## Code Quality Standards
 
 ### 1. Clarity and Readability
@@ -140,6 +148,8 @@ This document defines the core coding principles and standards for all projects 
 - **Check logs**: Use `.dev.log` and other log files for context
 - **Find acceptance criteria**: What does "fixed" mean? What should work?
 - **Define verification**: How will you prove it's fixed?
+- **Try different approaches**: If stuck after 2-3 attempts, try something completely different
+- **Search online**: Look for similar problems and solutions when encountering technical challenges
 - **Verify the fix**: Test and prove the issue is actually resolved - don't stop until verified
 - **Show proof**: Demonstrate the fix works before claiming success
 - **Test in a loop until fixed**: Write a test that reproduces the bug, fix it, run the test, repeat until test passes
@@ -176,6 +186,72 @@ This document defines the core coding principles and standards for all projects 
 - **Show proof of fix**: Run tests, show output, demonstrate the fix works
 - **If verification fails**: Try a different approach - don't give up until it's actually working
 - **Never mark as fixed without verification**: Always test and prove the fix works first
+
+### 19b. Self-Solving and Problem Resolution (MANDATORY)
+**CRITICAL**: AI agents must solve problems independently like an intelligent being. You are expected to find solutions yourself, not get stuck in loops.
+
+#### When Stuck or in a Loop:
+1. **Always try a different approach** - If you've tried the same approach 2-3 times without success, you MUST try something completely different
+2. **Think broadly** - Consider the problem from different angles:
+   - Is the problem what you think it is?
+   - Are there assumptions you're making that might be wrong?
+   - Could the issue be elsewhere in the codebase?
+   - Is there a simpler way to achieve the goal?
+3. **Search online for solutions** - When encountering a specific technical challenge:
+   - Search for similar issues (e.g., "React onClick not firing", "setState not updating")
+   - Look for solutions in documentation, Stack Overflow, GitHub issues
+   - Check if there are known patterns or best practices
+   - Reference how others solved similar problems
+4. **Create and execute a plan** - When stuck:
+   - **Silently create a plan** (you don't need to show it to the user)
+   - Break the problem into smaller, testable steps
+   - Define clear acceptance criteria for each step
+   - Execute the plan systematically
+   - If a step fails, adjust the plan and continue
+5. **Maintain context of the big picture** - Don't lose sight of the overall goal:
+   - Define clear acceptance criteria that capture the full requirement
+   - Ensure acceptance criteria don't lose context of the big picture
+   - Regularly check if current approach aligns with the goal
+   - If you're solving a sub-problem, ensure it contributes to the main goal
+
+#### Acceptance Criteria Definition:
+- **Must be specific and testable** - "Show a message when button is clicked" not "make it work"
+- **Must maintain big picture context** - Include the full requirement, not just technical details
+- **Must be verifiable** - Can be checked with automated tests or clear manual verification
+- **Must be written down** - Define acceptance criteria explicitly before starting implementation
+
+#### Problem-Solving Process:
+1. **Understand the problem** - Read error messages, check logs, understand what's actually happening
+2. **Define acceptance criteria** - Write down what "fixed" means, maintaining big picture context
+3. **Try first approach** - Implement a solution
+4. **If stuck after 2-3 attempts**:
+   - Stop and think: "What am I assuming that might be wrong?"
+   - Search online for similar problems
+   - Try a completely different approach
+   - Create a plan (silently) and execute it
+5. **Verify solution** - Test that acceptance criteria are met
+6. **If verification fails** - Go back to step 4, don't repeat the same approach
+
+#### Examples of Different Approaches:
+- If React state isn't updating → Try: direct DOM manipulation, refs, useEffect, different state management
+- If onClick isn't firing → Try: native event listeners, different event handlers, check event propagation
+- If component isn't rendering → Try: simpler component, check conditional rendering, verify state values
+- If test is failing → Try: different test approach, manual verification, check if test is correct
+
+#### Never:
+- Repeat the same approach more than 2-3 times
+- Give up without trying a different approach
+- Skip searching online for known solutions
+- Work without clear acceptance criteria
+- Lose sight of the big picture goal
+
+#### Always:
+- Try different approaches when stuck
+- Search online for similar problems
+- Think broadly about the problem
+- Create and execute a plan when stuck
+- Maintain context of the big picture
+- Define clear, testable acceptance criteria
 
 ## Project-Specific Considerations
 

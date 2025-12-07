@@ -1,6 +1,6 @@
 # Verification Proof Pack
 
-This directory contains the complete verification artifacts for the Spotify Lyrics Player application.
+This directory contains the complete verification artifacts for the Spotify Lyrics application.
 
 ## Contents
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Complete automated verification infrastructure has been built for the Spotify Lyrics Player application, following all specified requirements.
+Complete automated verification infrastructure has been built for the Spotify Lyrics application, following all specified requirements.
 
 ## What Was Delivered
 

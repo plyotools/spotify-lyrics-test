@@ -110,7 +110,7 @@ export class SpotifyService {
   private static setupPlayer(resolve: () => void, reject: (error: Error) => void): void {
     const Spotify = (window as any).Spotify as { Player: SpotifyPlayerConstructor };
     this.player = new Spotify.Player({
-          name: 'Spotify Lyrics Player',
+          name: 'Spotify Lyrics',
           getOAuthToken: async (cb: (token: string) => void) => {
             try {
               const token = await AuthService.getValidToken();
@@ -411,7 +411,7 @@ export class SpotifyService {
       }
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
+        await response.text().catch(() => 'Unknown error'); // Consume response body
         let errorMessage = 'Failed to skip to next track';
         
         if (response.status === 403) {

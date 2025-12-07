@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Spotify Lyrics Player",
+  "name": "Spotify Lyrics",
   "version": "1.0.0",
   "description": "Display synchronized lyrics for currently playing Spotify songs",
   "permissions": [
@@ -17,7 +17,7 @@
     "https://api.setlist.fm/*"
   ],
   "action": {
-    "default_title": "Spotify Lyrics Player",
+    "default_title": "Spotify Lyrics",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

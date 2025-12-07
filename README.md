@@ -1,4 +1,4 @@
-# Spotify Lyrics Player
+# Spotify Lyrics
 
 A web application that displays synchronized lyrics for the currently playing Spotify song in real-time.
 

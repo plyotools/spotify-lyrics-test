@@ -36,7 +36,7 @@ const startTime = Date.now();
 logEvent({
   timestamp: new Date().toISOString(),
   event_type: 'BOOT_START',
-  test_harness: 'Spotify Lyrics Player Verification',
+  test_harness: 'Spotify Lyrics Verification',
   version: '1.0.0',
 });
 

@@ -25,7 +25,7 @@ export const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1>Spotify Lyrics Player</h1>
+        <h1>Spotify Lyrics</h1>
         <p>Connect your Spotify account to see synchronized lyrics</p>
         <button onClick={handleLogin} className="login-button">
           Connect with Spotify

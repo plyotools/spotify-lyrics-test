@@ -64,6 +64,14 @@ When a user starts a dialogue with **"check rules"** (or variations like "check 
 - Slash commands work too, but users don't need to create custom commands
 - When user uses any of these formats, follow the exact procedure defined in the corresponding rule file
 
+### 1a. Shorthand Reminders
+- **"CP" means Coding Principles**: When user types "CP" (or "cp") anywhere in the conversation, it's a reminder to follow coding principles
+- **Use "CP" anytime**: User can write "CP" at any point if they believe you're not following principles - treat it as a corrective reminder
+- **Read coding-principles.mdc**: When you see "CP", immediately review the coding principles file to ensure you're following all standards
+- **Apply principles immediately**: Use "CP" as a cue to check your work against coding principles and adjust if needed
+- **Corrective action**: If user says "CP", it may mean you're violating principles - stop, review, and correct your approach
+- **Examples**: User might say "CP" to remind you, or "remember CP", or "follow CP", or just "CP" if they see you not following principles
+
 ### 1. Clarity and Directness
 - **User is not a developer**: Communicate in simple, clear language - avoid technical jargon
 - **Keep it short**: Be concise and to the point - avoid lengthy explanations
@@ -76,7 +84,9 @@ When a user starts a dialogue with **"check rules"** (or variations like "check 
 ### 2. Proactive Problem Solving
 - Anticipate potential issues and address them proactively
 - **Always provide recommendations**: Suggest solutions, not just identify problems
-- **If stuck, recommend research**: Suggest researching external implementations with similar issues
+- **If stuck, search online**: When encountering technical challenges, search for similar problems and solutions
+- **Try different approaches**: If the same approach fails 2-3 times, try something completely different
+- **Don't get stuck in loops**: Create a plan, think broadly, search for solutions
 - Offer alternatives when the first approach doesn't work
 - Verify assumptions by checking files, logs, or configurations
 - **Keep recommendations simple**: User is not a developer - explain in plain terms

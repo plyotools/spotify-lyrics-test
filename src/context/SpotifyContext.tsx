@@ -127,7 +127,7 @@ export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
               console.warn('');
               console.warn('💡 SOLUTION (if you have Premium):');
               console.warn('   1. Go to: https://www.spotify.com/account/apps/');
-              console.warn('   2. Find "Spotify Lyrics Player" and click "Remove access"');
+              console.warn('   2. Find "Spotify Lyrics" and click "Remove access"');
               console.warn('   3. Come back here and click "Re-authenticate" button');
               console.warn('   4. Approve the consent screen');
               console.warn('   5. SDK will automatically initialize after re-auth');

@@ -16,7 +16,7 @@ export const WordCloudBackground = ({
   opacity = 0.5 
 }: WordCloudBackgroundProps) => {
   const [wordCloudImage, setWordCloudImage] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [_isGenerating, setIsGenerating] = useState(false);
   const [serverAvailable, setServerAvailable] = useState<boolean | null>(null);
   const [lastLyricsHash, setLastLyricsHash] = useState<string>('');
 

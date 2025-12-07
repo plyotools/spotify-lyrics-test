@@ -7,7 +7,7 @@ test.describe('Authentication Flow', () => {
   });
 
   test('should display login screen initially', async ({ page }) => {
-    await expect(page.getByText('Spotify Lyrics Player')).toBeVisible();
+    await expect(page.getByText('Spotify Lyrics')).toBeVisible();
     await expect(page.getByRole('button', { name: /connect with spotify/i })).toBeVisible();
   });
 

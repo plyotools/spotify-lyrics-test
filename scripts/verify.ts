@@ -43,7 +43,7 @@ async function main() {
   const startTime = Date.now();
   
   // Boot start
-  verificationLogger.bootStart('Spotify Lyrics Player Verification', '1.0.0');
+  verificationLogger.bootStart('Spotify Lyrics Verification', '1.0.0');
   verificationLogger.ready('Test Infrastructure');
 
   let totalTests = 0;

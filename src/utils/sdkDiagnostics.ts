@@ -54,7 +54,7 @@ export async function diagnoseSDK(): Promise<SDKDiagnostics> {
             '1. Go to https://www.spotify.com/account/apps/'
           );
           diagnostics.recommendations.push(
-            '2. Find "Spotify Lyrics Player" and click "Remove access"'
+            '2. Find "Spotify Lyrics" and click "Remove access"'
           );
           diagnostics.recommendations.push(
             '3. Come back here and click "Re-authenticate"'

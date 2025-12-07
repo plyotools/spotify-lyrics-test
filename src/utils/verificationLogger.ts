@@ -3,7 +3,9 @@
  * Writes structured logs in JSONL format to proof/root.log
  */
 
+// @ts-ignore - Node.js modules not available in browser
 import { writeFileSync, mkdirSync, appendFileSync, existsSync } from 'fs';
+// @ts-ignore - Node.js modules not available in browser
 import { join } from 'path';
 
 type LogEventType =
@@ -92,11 +94,11 @@ type LogEvent =
 class VerificationLogger {
   private logPath: string;
   private buffer: LogEvent[] = [];
-  private isInitialized = false;
 
   constructor() {
     // Determine log path - use proof/root.log in project root
-    const projectRoot = process.cwd();
+    // @ts-ignore - process.cwd() not available in browser
+    const projectRoot = typeof process !== 'undefined' ? process.cwd() : '.';
     const proofDir = join(projectRoot, 'proof');
     this.logPath = join(proofDir, 'root.log');
 
@@ -126,7 +128,6 @@ class VerificationLogger {
       version,
     };
     this.writeEvent(event);
-    this.isInitialized = true;
   }
 
   testStart(testId: string, suite: string, requirement?: string): void {

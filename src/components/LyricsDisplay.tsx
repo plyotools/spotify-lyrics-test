@@ -3,7 +3,7 @@ import type { LyricsData } from '../types/lyrics';
 import type { Track, PlaybackState } from '../types/spotify';
 import { UpcomingConcerts } from './UpcomingConcerts';
 import { LibrarySearch, type LibrarySearchRef } from './LibrarySearch';
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { extractBrightestColor, extractDarkestColor, extractVividLightColors, extractVividMidtoneColor } from '../utils/colorExtractor';
 
 interface LyricsDisplayProps {
@@ -83,9 +83,9 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
   
   // Extract brightest and darkest colors from album cover
   const [brightestColor, setBrightestColor] = useState<string>('#1DB954'); // Default to Spotify green
-  const [darkestColor, setDarkestColor] = useState<string>('#121212'); // Default to dark background
+  const [_darkestColor, setDarkestColor] = useState<string>('#121212'); // Default to dark background (used for CSS variable)
   const [vividBrightColors, setVividBrightColors] = useState<string[]>(Array(5).fill('#1DB954')); // 5 vivid bright colors for current line transition
-  const [vividMidtoneColor, setVividMidtoneColor] = useState<string>('#B3B3B3'); // Most vivid midtone for coming lines
+  const [_vividMidtoneColor, setVividMidtoneColor] = useState<string>('#B3B3B3'); // Most vivid midtone for coming lines (set but not read)
   const [currentColorIndex, setCurrentColorIndex] = useState<number>(0); // Index for color transition
   
   // Helper to convert hex to rgba
@@ -183,8 +183,6 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
     }
     prevHasLyricsRef.current = hasLyrics;
   }, [currentLine]);
-  
-  const currentTrackWord = trackWordsRef.current[trackWordIndex] || '';
   
   // Get next track
   const nextTrack = playbackState?.context?.next_tracks?.[0] || null;
@@ -617,11 +615,11 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
                       // Current word: calculate progress through the word
                       const wordStartTime = word.time;
                       const wordEndTime = word.endTime || 
-                        (wordIdx < currentLine.words.length - 1 
-                          ? currentLine.words[wordIdx + 1].time 
-                          : (currentLine.words[wordIdx].time + 1000)); // Default 1 second duration
+                        (wordIdx < (currentLine.words?.length ?? 0) - 1 
+                          ? (currentLine.words?.[wordIdx + 1]?.time ?? wordStartTime + 1000)
+                          : (currentLine.words?.[wordIdx]?.time ?? wordStartTime) + 1000); // Default 1 second duration
                       
-                      const wordDuration = wordEndTime - wordStartTime;
+                      const wordDuration = (wordEndTime ?? wordStartTime + 1000) - wordStartTime;
                       const elapsed = currentPosition - wordStartTime;
                       const progress = wordDuration > 0 
                         ? Math.max(0, Math.min(1, elapsed / wordDuration))
@@ -642,13 +640,14 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
                       const distance = wordIdx - currentWordIndex;
                       
                       // For the next word (distance = 1), ease in smoothly before becoming active
-                      if (distance === 1) {
+                      if (distance === 1 && currentLine.words) {
                         // Calculate how close we are to this word becoming active
                         const nextWord = currentLine.words[wordIdx];
                         const currentWord = currentLine.words[currentWordIndex];
+                        if (!nextWord || !currentWord) return null;
                         const currentWordEndTime = currentWord.endTime || 
                           (currentWordIndex < currentLine.words.length - 1 
-                            ? currentLine.words[currentWordIndex + 1].time 
+                            ? currentLine.words[currentWordIndex + 1]?.time 
                             : (currentWord.time + 1000));
                         
                         // Time until next word starts

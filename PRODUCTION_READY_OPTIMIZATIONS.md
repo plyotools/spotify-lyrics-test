@@ -1,7 +1,7 @@
 # Production-Ready API Optimizations
 
 ## Overview
-This document outlines the comprehensive optimizations implemented to make the Spotify Lyrics Player production-ready with minimal API usage and maximum reliability.
+This document outlines the comprehensive optimizations implemented to make the Spotify Lyrics production-ready with minimal API usage and maximum reliability.
 
 ## Problem Statement
 For a service to be reliable for multiple users, we need to:

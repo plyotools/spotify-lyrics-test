@@ -92,7 +92,7 @@ describe('Login Component', () => {
     
     render(<Login />);
     
-    expect(screen.getByText('Spotify Lyrics Player')).toBeInTheDocument();
+    expect(screen.getByText('Spotify Lyrics')).toBeInTheDocument();
     expect(screen.getByText(/Connect your Spotify account/i)).toBeInTheDocument();
   });
 });

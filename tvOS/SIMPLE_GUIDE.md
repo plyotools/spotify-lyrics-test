@@ -73,7 +73,7 @@
 
 2. **Navigate to**: 
    - Go to your home folder
-   - Find "Spotify Lyrics Player" folder
+   - Find "Spotify Lyrics" folder
    - Open it
    - Open the "tvOS" folder inside
 
