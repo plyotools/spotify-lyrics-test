@@ -11,23 +11,51 @@ export const Callback = () => {
   useEffect(() => {
     // Prevent double execution in React StrictMode
     if (hasProcessed.current) {
+      console.log('[CALLBACK] Already processed, skipping');
       return;
     }
 
     const handleCallback = async () => {
+      console.log('[CALLBACK] ========================================');
       console.log('[CALLBACK] Callback component mounted, handling Spotify redirect');
+      console.log('[CALLBACK] Location pathname:', location.pathname);
+      console.log('[CALLBACK] Location search:', location.search);
+      console.log('[CALLBACK] Window hash:', window.location.hash);
       
       // First, extract query params to check if we have a new authorization code
       // Try to get query params from multiple sources
-      let queryString = location.search || window.location.search || '';
+      // Priority: hash route (after main.tsx redirect) > location.search > window.location.search
+      let queryString = '';
       
+      // HashRouter puts the route in window.location.hash
+      // Format: #/callback?code=...&state=...
+      const hash = window.location.hash || '';
+      console.log('[CALLBACK] Window hash:', hash);
+      
+      // Extract query string from hash (after #/callback?)
+      if (hash.startsWith('#/callback') && hash.includes('?')) {
+        const hashParts = hash.split('?');
+        if (hashParts.length > 1) {
+          queryString = '?' + hashParts.slice(1).join('?');
+          console.log('[CALLBACK] Found query string in hash:', queryString);
+        }
+      }
+      
+      // Fallback: check location.search (for direct navigation without hash)
       if (!queryString) {
-        const hash = window.location.hash || '';
-        if (hash.includes('?')) {
-          const hashParts = hash.split('?');
-          if (hashParts.length > 1) {
-            queryString = '?' + hashParts.slice(1).join('?');
-          }
+        queryString = location.search || window.location.search || '';
+        if (queryString) {
+          console.log('[CALLBACK] Using search params:', queryString);
+        }
+      }
+      
+      // Last resort: parse from full URL
+      if (!queryString) {
+        const fullUrl = window.location.href;
+        const urlMatch = fullUrl.match(/[?#]([^#]*code=[^#&]*)/);
+        if (urlMatch) {
+          queryString = '?' + urlMatch[1];
+          console.log('[CALLBACK] Extracted from URL:', queryString);
         }
       }
       
@@ -99,7 +127,7 @@ export const Callback = () => {
     };
 
     handleCallback();
-  }, [navigate]);
+  }, [navigate, location]);
 
   if (error) {
     return (

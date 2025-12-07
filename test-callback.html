@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Callback Redirect</title>
+</head>
+<body>
+  <h1>Testing Callback Redirect</h1>
+  <p>This page simulates what happens when Spotify redirects back.</p>
+  <script>
+    // Simulate the redirect logic from main.tsx
+    const pathname = window.location.pathname;
+    const search = window.location.search;
+    
+    console.log('Pathname:', pathname);
+    console.log('Search:', search);
+    
+    const isCallbackPath = pathname === '/callback' || pathname.endsWith('/callback');
+    const hasCode = search.includes('code=');
+    
+    if (isCallbackPath && hasCode) {
+      let basePath = pathname.replace('/callback', '');
+      if (!basePath || basePath === '/') {
+        basePath = '/spotify-lyrics-test';
+      }
+      if (!basePath.startsWith('/')) {
+        basePath = '/' + basePath;
+      }
+      
+      const redirectUrl = window.location.origin + basePath + '#/callback' + search;
+      console.log('Redirecting to:', redirectUrl);
+      window.location.replace(redirectUrl);
+    }
+  </script>
+</body>
+</html>
+
+

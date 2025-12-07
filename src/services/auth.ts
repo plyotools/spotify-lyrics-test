@@ -21,6 +21,9 @@ const getDefaultRedirectUri = () => {
   }
   
   const origin = window.location.origin;
+  // Base path from vite config (must match vite.config.ts base setting)
+  const basePath = '/spotify-lyrics-test';
+  
   // For Chrome extensions, we need to use a web URL that Spotify accepts
   // Default to 127.0.0.1:5175/callback (updated port to avoid conflicts)
   if (origin.startsWith('chrome-extension://')) {
@@ -28,9 +31,9 @@ const getDefaultRedirectUri = () => {
   }
   // Replace localhost with 127.0.0.1 if needed
   if (origin.includes('localhost')) {
-    return origin.replace('localhost', '127.0.0.1') + '/callback';
+    return origin.replace('localhost', '127.0.0.1') + basePath + '/callback';
   }
-  return origin + '/callback';
+  return origin + basePath + '/callback';
 };
 const REDIRECT_URI = getDefaultRedirectUri();
 
