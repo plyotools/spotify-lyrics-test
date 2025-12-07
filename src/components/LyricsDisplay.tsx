@@ -355,7 +355,7 @@ export const LyricsDisplay = ({ lyrics, currentPosition, track, playbackState, i
               )}
               <div className="lyrics-loading-album-wrapper">
                 <img 
-                  src="/lp.png" 
+                  src="/spotify-lyrics-test/lp.png" 
                   alt="Vinyl record" 
                   className="lyrics-loading-vinyl" 
                 />

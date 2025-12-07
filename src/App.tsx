@@ -160,7 +160,7 @@ function App() {
             animation: 'spin 3s linear infinite'
           }}>
             <img 
-              src="/lp.png" 
+              src="/spotify-lyrics-test/lp.png" 
               alt="Vinyl record" 
               style={{
                 width: '100%',

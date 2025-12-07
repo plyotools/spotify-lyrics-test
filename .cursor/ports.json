@@ -2,8 +2,8 @@
   "schemaVersion": "1.0",
   "services": {
     "web": {
-      "port": 5105,
-      "url": "http://localhost:5105"
+      "port": 5173,
+      "url": "http://localhost:5173"
     },
     "api": {
       "port": 8001,
